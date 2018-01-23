@@ -1,4 +1,4 @@
-GCC_OPTIONS = -m32 -nostdlib -fno-builtin -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -fno-stack-protector -fleading-underscore -fno-asynchronous-unwind-tables
+GCC_OPTIONS = -m32 -nostdlib -fno-builtin -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -fno-stack-protector -fleading-underscore -fno-asynchronous-unwind-tables -g -O0
 
 all: kernel.bin
 
@@ -23,7 +23,7 @@ console.o: console.H console.C
 # ==== KERNEL MAIN FILE ====
 
 kernel.o: kernel.C
-	gcc $(GCC_OPTIONS) -c -o kernel.o kernel.C
+	gcc $(GCC_OPTIONS) -c -O0 -o kernel.o kernel.C
 
 
 kernel.bin: start.o kernel.o console.o utils.o linker.ld

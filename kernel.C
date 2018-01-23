@@ -32,6 +32,9 @@ int main()
   Console::init(); 
   Console::puts("Initialized console.\n");
   Console::puts("\n");
+  
+  int i = 0;
+  char j = 'a';
 
   Console::puts("Replace the following <NAME> field with your name.\n");
   Console::puts("After your are done admiring your output, you can shutdown this 'machine'.\n");
