@@ -39,7 +39,7 @@ int main()
   Console::puts("WELCOME TO MY KERNEL!\n");
   Console::puts("      ");
   Console::set_TextColor(GREEN, RED);
-  Console::puts("<NAME>\n");
+  Console::puts("<MIAN QIN>\n");
   
   /* -- LOOP FOREVER! */
   for(;;);
