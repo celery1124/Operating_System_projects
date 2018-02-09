@@ -182,8 +182,29 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames)
 void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
                                       unsigned long _n_frames)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+    // Mark all frames in the range as being used.
+    int i ;
+    for(i = _base_frame_no; i < _base_frame_no + _nframes; i++){
+        mark_inaccessible(i);
+    }
+}
+
+void SimpleFramePool::mark_inaccessible(unsigned long _frame_no)
+{
+    // Let's first do a range check.
+    assert ((_frame_no >= base_frame_no) && (_frame_no < base_frame_no + nframes));
+    
+    unsigned int bitmap_index = (_frame_no - base_frame_no) / 4;
+    unsigned char and_mask = ~(0xC0 >> ((_frame_no - base_frame_no) % 4));
+    unsigned char or_mask = 0x80 >> ((_frame_no - base_frame_no) % 4);
+    
+    // Is the frame being used already?
+    assert((bitmap[bitmap_index] & and_mask) >> ((_frame_no - base_frame_no) % 4) == 3);
+    
+    // Update bitmap (as 2)
+    bitmap[bitmap_index] &= and_mask;
+    bitmap[bitmap_index] |= or_mask;
+    nFreeFrames--;
 }
 
 void ContFramePool::release_frames(unsigned long _first_frame_no)

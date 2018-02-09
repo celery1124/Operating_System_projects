@@ -49,6 +49,7 @@ private:
     unsigned long   info_frame_no; // Where do we store the management information?
     unsigned long   n_info_frames; // numver of info_frames
     
+    void mark_inaccessible(unsigned long _frame_no); // mark signal frame inaccessible
 public:
 
     // The frame size is the same as the page size, duh...    
