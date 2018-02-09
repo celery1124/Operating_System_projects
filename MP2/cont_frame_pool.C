@@ -132,8 +132,45 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
                              unsigned long _info_frame_no,
                              unsigned long _n_info_frames)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+    // Bitmap must fit in n_of_frames
+    assert(_nframes <= FRAME_SIZE * 4 * _n_info_frames);
+    
+    base_frame_no = _base_frame_no;
+    nframes = _nframes;
+    nFreeFrames = _nframes;
+    info_frame_no = _info_frame_no;
+    if(info_frame_no)
+        n_info_frames = _n_info_frames;
+    else
+        n_info_frames = needed_info_frames(nframes);
+    
+    // If _info_frame_no is zero then we keep management info in the first
+    //frame, else we use the provided frame to keep management info
+    if(info_frame_no == 0) {
+        bitmap = (unsigned char *) (base_frame_no * FRAME_SIZE);
+    } else {
+        bitmap = (unsigned char *) (info_frame_no * FRAME_SIZE);
+    }
+    
+    // Number of frames must be multiple of 4 (2 bits map a frame)
+    assert ((nframes % 4 ) == 0);
+
+    // Everything ok. Proceed to mark all bits in the bitmap
+    for(int i=0; i*4 < _nframes; i++) {
+        bitmap[i] = 0xFF;
+    }
+    
+    // Mark the first frame as being used if it is being used
+    if(_info_frame_no == 0) {
+        unsigned char mask = 0x3F;
+        for(int i = 0; i<n_info_frames; i++)
+        {
+            bitmap[i/4] ^= (mask >> (i % 4));
+            nFreeFrames--;
+        }
+    }
+    
+    Console::puts("Frame Pool initialized\n");
 }
 
 unsigned long ContFramePool::get_frames(unsigned int _n_frames)
@@ -157,6 +194,10 @@ void ContFramePool::release_frames(unsigned long _first_frame_no)
 
 unsigned long ContFramePool::needed_info_frames(unsigned long _n_frames)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+    if(_n_frames == 0)
+        return 0;
+    else if(_n_frames*2 % (FRAME_SIZE*8) == 0)
+        return (_n_frames*2/(FRAME_SIZE*8));
+    else
+        return (_n_frames*2/(FRAME_SIZE*8) + 1);
 }
