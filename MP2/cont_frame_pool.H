@@ -48,6 +48,9 @@ private:
     unsigned long   nframes;       // Size of the frame pool
     unsigned long   info_frame_no; // Where do we store the management information?
     unsigned long   n_info_frames; // numver of info_frames
+
+    ContFramePool* next;
+    static ContFramePool* head = NULL;
     
     void mark_inaccessible(unsigned long _frame_no); // mark signal frame inaccessible
 public:

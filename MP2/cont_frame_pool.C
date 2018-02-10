@@ -169,6 +169,19 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
             nFreeFrames--;
         }
     }
+
+    // list all the constructed frame pool
+    next = NULL;
+    if(head == NULL)
+    {
+        head = this;
+    }
+    else
+    {
+        ContFramePool *p = head;
+        while (p->next != NULL) p = p->next;
+        p->next = this;
+    }
     
     Console::puts("Frame Pool initialized\n");
 }
@@ -255,8 +268,7 @@ void SimpleFramePool::mark_inaccessible(unsigned long _frame_no)
 
 void ContFramePool::release_frames(unsigned long _first_frame_no)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+    
 }
 
 unsigned long ContFramePool::needed_info_frames(unsigned long _n_frames)
