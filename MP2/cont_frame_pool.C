@@ -162,10 +162,10 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     
     // Mark the first frame as being used if it is being used
     if(_info_frame_no == 0) {
-        unsigned char mask = 0x3F;
+        unsigned char mask = 0xC0;
         for(int i = 0; i<n_info_frames; i++)
         {
-            bitmap[i/4] ^= (mask >> (i % 4));
+            bitmap[i/4] &= ~(mask >> ((i % 4) * 2));
             nFreeFrames--;
         }
     }
