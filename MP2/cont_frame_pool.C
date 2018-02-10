@@ -133,11 +133,11 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
                              unsigned long _n_info_frames)
 {
     // Bitmap must fit in n_of_frames
-    assert(_nframes <= FRAME_SIZE * 4 * _n_info_frames);
+    assert(_n_frames <= FRAME_SIZE * 4 * _n_info_frames);
     
     base_frame_no = _base_frame_no;
-    nframes = _nframes;
-    nFreeFrames = _nframes;
+    nframes = _n_frames;
+    nFreeFrames = _n_frames;
     info_frame_no = _info_frame_no;
     if(info_frame_no)
         n_info_frames = _n_info_frames;
@@ -156,7 +156,7 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     assert ((nframes % 4 ) == 0);
 
     // Everything ok. Proceed to mark all bits in the bitmap
-    for(int i=0; i*4 < _nframes; i++) {
+    for(int i=0; i*4 < _n_frames; i++) {
         bitmap[i] = 0xFF;
     }
     
@@ -242,12 +242,12 @@ void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
 {
     // Mark all frames in the range as being used.
     int i ;
-    for(i = _base_frame_no; i < _base_frame_no + _nframes; i++){
+    for(i = _base_frame_no; i < _base_frame_no + _n_frames; i++){
         mark_inaccessible(i);
     }
 }
 
-void SimpleFramePool::mark_inaccessible(unsigned long _frame_no)
+void ContFramePool::mark_inaccessible(unsigned long _frame_no)
 {
     // Let's first do a range check.
     assert ((_frame_no >= base_frame_no) && (_frame_no < base_frame_no + nframes));
@@ -304,7 +304,7 @@ void ContFramePool::_release_frames(unsigned long _first_frame_no)
         }
         mask = 0xC0 >> shift_index;
     }
-    while(bitmap[bitmap_index] & mask == 0)
+    while(bitmap[bitmap_index] & mask == 0);
     
 }
 
