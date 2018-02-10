@@ -132,9 +132,6 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
                              unsigned long _info_frame_no,
                              unsigned long _n_info_frames)
 {
-    // Bitmap must fit in n_of_frames
-    assert(_n_frames <= FRAME_SIZE * 4 * _n_info_frames);
-    
     base_frame_no = _base_frame_no;
     nframes = _n_frames;
     nFreeFrames = _n_frames;
@@ -143,6 +140,9 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
         n_info_frames = _n_info_frames;
     else
         n_info_frames = needed_info_frames(nframes);
+
+    // Bitmap must fit in n_of_frames
+    assert(_n_frames <= FRAME_SIZE * 4 * n_info_frames);
     
     // If _info_frame_no is zero then we keep management info in the first
     //frame, else we use the provided frame to keep management info
@@ -189,7 +189,7 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
 unsigned long ContFramePool::get_frames(unsigned int _n_frames)
 {
     // Any frames left to allocate?
-    if(nFreeFrames >= _n_frames) return 0;
+    if(nFreeFrames <= _n_frames) return 0;
 
     unsigned int frame_no = base_frame_no + n_info_frames;
     unsigned int remain = _n_frames;
