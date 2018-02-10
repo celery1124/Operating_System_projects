@@ -175,8 +175,53 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
 
 unsigned long ContFramePool::get_frames(unsigned int _n_frames)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+    // Any frames left to allocate?
+    if(nFreeFrames >= _n_frames) return 0;
+
+    unsigned int frame_no = base_frame_no + n_info_frames;
+    unsigned int remain = _n_frames;
+    // Find _n_frames of contiounes free frames (first fit)
+    unsigned int bitmap_index = 0, shift_index = 0;
+    unsigned char mask = 0xC0;
+
+    for (int i = n_info_frames; i < nframes; i++)
+    {
+        bitmap_index = i / 4;
+        shift_index = (i % 4) * 2;
+        mask = 0xC0 >> shift_index;
+        if((bitmap[bitmap_index] & mask) == mask)
+            remain--;
+        else
+            remain = _n_frames;
+
+        if(remain == 0) 
+        {
+            // update bitmap of the allocated frames
+            while(remain++ < _n_frames)
+            {
+                bitmap_index = i / 4;
+                shift_index = (i % 4) * 2;     
+                if(remain == _n_frames - 1)
+                {
+                    mask = ~(0x40 >> shift_index);
+                    bitmap[bitmap_index] &= mask;
+                }
+                else
+                {
+                    mask = ~(0xC0 >> shift_index);
+                    bitmap[bitmap_index] &= mask;
+                }
+                i--;
+            }
+            // calculate start frame_no
+            frame_no = base_frame_no + bitmap_index*4 + shift_index/2;
+            return frame_no;
+        }
+    } 
+
+    // no continous _n_frames found
+    return 0;
+
 }
 
 void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
@@ -195,11 +240,12 @@ void SimpleFramePool::mark_inaccessible(unsigned long _frame_no)
     assert ((_frame_no >= base_frame_no) && (_frame_no < base_frame_no + nframes));
     
     unsigned int bitmap_index = (_frame_no - base_frame_no) / 4;
-    unsigned char and_mask = ~(0xC0 >> ((_frame_no - base_frame_no) % 4));
-    unsigned char or_mask = 0x80 >> ((_frame_no - base_frame_no) % 4);
+    unsigned int shift_index = ((_frame_no - base_frame_no) % 4) * 2;
+    unsigned char and_mask = ~(0xC0 >> shift_index);
+    unsigned char or_mask = 0x80 >> shift_index;
     
     // Is the frame being used already?
-    assert((bitmap[bitmap_index] & and_mask) >> ((_frame_no - base_frame_no) % 4) == 3);
+    assert((bitmap[bitmap_index] & and_mask) >> ((_frame_no - base_frame_no) % 4) == (0xC0 >> shift_index));
     
     // Update bitmap (as 2)
     bitmap[bitmap_index] &= and_mask;
