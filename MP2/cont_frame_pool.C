@@ -126,7 +126,7 @@
 /*--------------------------------------------------------------------------*/
 /* METHODS FOR CLASS   C o n t F r a m e P o o l */
 /*--------------------------------------------------------------------------*/
-
+ContFramePool* ContFramePool::head = NULL;
 ContFramePool::ContFramePool(unsigned long _base_frame_no,
                              unsigned long _n_frames,
                              unsigned long _info_frame_no,
@@ -268,6 +268,43 @@ void SimpleFramePool::mark_inaccessible(unsigned long _frame_no)
 
 void ContFramePool::release_frames(unsigned long _first_frame_no)
 {
+    ContFramePool *p = head;
+    while(p != NULL)
+    {
+        if(_first_frame_no >= p->base_frame_no && _first_frame_no < (p->base_frame_no + p->nframes))
+        {
+            p->_release_frames(_first_frame_no);
+            return;
+        }
+        p = p->next;
+    }
+
+    // something went wrong, release frame not found in pool
+    assert(false);
+}
+
+void ContFramePool::_release_frames(unsigned long _first_frame_no)
+{
+    unsigned int bitmap_index = (_first_frame_no - base_frame_no) / 4;
+    unsigned int shift_index = ((_first_frame_no - base_frame_no) % 4) * 2;
+    unsigned char mask = 0xC0 >> shift_index;
+
+    // check if _first_frame_no is the first frame of allocated frames
+    if(bitmap[bitmap_index] & mask != (0x40 >> shift_index)) assert(false);
+
+    // update the bitmap first release frame (1->3) following (0->#)
+    do 
+    {
+        bitmap[bitmap_index] != mask;
+        shift_index += 2;
+        if(shift_index == 8)
+        {
+            shift_index = 0;
+            bitmap_index++;
+        }
+        mask = 0xC0 >> shift_index;
+    }
+    while(bitmap[bitmap_index] & mask == 0)
     
 }
 

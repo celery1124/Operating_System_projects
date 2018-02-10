@@ -50,8 +50,8 @@ private:
     unsigned long   n_info_frames; // numver of info_frames
 
     ContFramePool* next;
-    static ContFramePool* head = NULL;
-    
+    static ContFramePool* head;
+    void _release_frames(unsigned long _first_frame_no); // private function for release frames
     void mark_inaccessible(unsigned long _frame_no); // mark signal frame inaccessible
 public:
 
