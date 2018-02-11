@@ -92,6 +92,7 @@ int main() {
     Console::puts("Hello World!\n");
 
     /* -- TEST MEMORY ALLOCATOR */
+    kernel_mem_pool.mark_inaccessible(KERNEL_POOL_START_FRAME+1, 8);
     
     test_memory(&kernel_mem_pool, 32);
 
