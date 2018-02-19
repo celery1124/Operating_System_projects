@@ -197,7 +197,9 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames)
     unsigned int bitmap_index = 0, shift_index = 0;
     unsigned char mask = 0xC0;
 
-    for (int i = n_info_frames; i < nframes; i++)
+    int start_frame = info_frame_no == 0?n_info_frames:0;
+
+    for (int i = start_frame; i < nframes; i++)
     {
         bitmap_index = i / 4;
         shift_index = (i % 4) * 2;
