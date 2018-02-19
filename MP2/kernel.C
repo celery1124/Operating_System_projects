@@ -95,6 +95,30 @@ int main() {
     //kernel_mem_pool.mark_inaccessible(KERNEL_POOL_START_FRAME+1, 8);
     
     test_memory(&kernel_mem_pool, 32);
+    int frame;
+    int ret;
+
+    frame = process_mem_pool.get_frames(129); Console::puts("get frame = "); Console::puti(frame); Console::puts("\n");
+    frame = process_mem_pool.get_frames(247); Console::puts("get frame = "); Console::puti(frame); Console::puts("\n");
+    frame = process_mem_pool.get_frames(373); Console::puts("get frame = "); Console::puti(frame); Console::puts("\n");
+    frame = process_mem_pool.get_frames(765); Console::puts("get frame = "); Console::puti(frame); Console::puts("\n");
+    process_mem_pool.release_frames(1153);
+    frame = process_mem_pool.get_frames(242); Console::puts("get frame = "); Console::puti(frame); Console::puts("\n");
+    process_mem_pool.release_frames(1400);
+    frame = process_mem_pool.get_frames(370); Console::puts("get frame = "); Console::puti(frame); Console::puts("\n");
+    frame = process_mem_pool.get_frames(3); Console::puts("get frame = "); Console::puti(frame); Console::puts("\n");
+    frame = process_mem_pool.get_frames(3); Console::puts("get frame = "); Console::puti(frame); Console::puts("\n");
+    frame = process_mem_pool.get_frames(10); Console::puts("get frame = "); Console::puti(frame); Console::puts("\n");
+    process_mem_pool.release_frames(2538);
+    process_mem_pool.release_frames(1768);
+    process_mem_pool.release_frames(1765);
+    process_mem_pool.release_frames(1395);
+    process_mem_pool.release_frames(1153);
+    process_mem_pool.release_frames(1773);
+    process_mem_pool.release_frames(1024);
+    frame = process_mem_pool.get_frames(129); Console::puts("get frame = "); Console::puti(frame); Console::puts("\n");
+    process_mem_pool.release_frames(1024);
+
 
     /* ---- Add code here to test the frame pool implementation. */
     
@@ -113,7 +137,6 @@ void test_memory(ContFramePool * _pool, unsigned int _allocs_to_go) {
     if (_allocs_to_go > 0) {
         int n_frames = _allocs_to_go % 4 + 1;
         unsigned long frame = _pool->get_frames(n_frames);
-        Console::puts("get frame = "); Console::puti(frame); Console::puts("\n");
         int * value_array = (int*)(frame * (4 KB));        
         for (int i = 0; i < (1 KB) * n_frames; i++) {
             value_array[i] = _allocs_to_go;
