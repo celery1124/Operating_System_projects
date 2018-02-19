@@ -75,7 +75,7 @@ int main() {
 
     /* ---- PROCESS POOL -- */
 
-/*
+
     unsigned long n_info_frames = ContFramePool::needed_info_frames(PROCESS_POOL_SIZE);
 
     unsigned long process_mem_pool_info_frame = kernel_mem_pool.get_frames(n_info_frames);
@@ -86,13 +86,13 @@ int main() {
                                    n_info_frames);
     
     process_mem_pool.mark_inaccessible(MEM_HOLE_START_FRAME, MEM_HOLE_SIZE);
-*/
+
     /* -- MOST OF WHAT WE NEED IS SETUP. THE KERNEL CAN START. */
 
     Console::puts("Hello World!\n");
 
     /* -- TEST MEMORY ALLOCATOR */
-    kernel_mem_pool.mark_inaccessible(KERNEL_POOL_START_FRAME+1, 8);
+    //kernel_mem_pool.mark_inaccessible(KERNEL_POOL_START_FRAME+1, 8);
     
     test_memory(&kernel_mem_pool, 32);
 
@@ -113,6 +113,7 @@ void test_memory(ContFramePool * _pool, unsigned int _allocs_to_go) {
     if (_allocs_to_go > 0) {
         int n_frames = _allocs_to_go % 4 + 1;
         unsigned long frame = _pool->get_frames(n_frames);
+        Console::puts("get frame = "); Console::puti(frame); Console::puts("\n");
         int * value_array = (int*)(frame * (4 KB));        
         for (int i = 0; i < (1 KB) * n_frames; i++) {
             value_array[i] = _allocs_to_go;
@@ -128,6 +129,7 @@ void test_memory(ContFramePool * _pool, unsigned int _allocs_to_go) {
                 for(;;); 
             }
         }
+        Console::puts("release frame = "); Console::puti(frame); Console::puts("\n");
         ContFramePool::release_frames(frame);
     }
 }
