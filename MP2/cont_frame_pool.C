@@ -306,7 +306,7 @@ void ContFramePool::_release_frames(unsigned long _first_frame_no)
         }
         mask = 0xC0 >> shift_index;
     }
-    while(bitmap[bitmap_index] & mask == 0);
+    while((bitmap[bitmap_index] & mask) == 0);
     
 }
 
