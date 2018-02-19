@@ -214,9 +214,9 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames)
             {
                 bitmap_index = i / 4;
                 shift_index = (i % 4) * 2;     
-                if(remain == _n_frames - 1)
+                if(remain == _n_frames)
                 {
-                    mask = ~(0x40 >> shift_index);
+                    mask = ~(0x80 >> shift_index);
                     bitmap[bitmap_index] &= mask;
                 }
                 else
@@ -290,7 +290,8 @@ void ContFramePool::_release_frames(unsigned long _first_frame_no)
     unsigned char mask = 0xC0 >> shift_index;
 
     // check if _first_frame_no is the first frame of allocated frames
-    if(bitmap[bitmap_index] & mask != (0x40 >> shift_index)) assert(false);
+    if((bitmap[bitmap_index] & mask) != (0x40 >> shift_index)) 
+        assert(false);
 
     // update the bitmap first release frame (1->3) following (0->#)
     do 
