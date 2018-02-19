@@ -85,7 +85,22 @@ int main() {
                                    process_mem_pool_info_frame,
                                    n_info_frames);
     
+    int frame;
+    for(int i = 0; i< MEM_HOLE_START_FRAME - PROCESS_POOL_START_FRAME; i+=(0x1 << 8))
+    { 
+        frame = process_mem_pool.get_frames(0x1 << 8);
+        Console::puts("get frame = "); Console::puti(frame); Console::puts("\n");
+    }
+    
     process_mem_pool.mark_inaccessible(MEM_HOLE_START_FRAME, MEM_HOLE_SIZE);
+
+    for(int i = 0; i< PROCESS_POOL_START_FRAME + PROCESS_POOL_SIZE - MEM_HOLE_START_FRAME - MEM_HOLE_SIZE; i+=(0x1 << 8))
+    { 
+        frame = process_mem_pool.get_frames(0x1 << 8);
+        Console::puts("get frame = "); Console::puti(frame); Console::puts("\n");
+    }
+    frame = process_mem_pool.get_frames(10);
+    Console::puts("get frame = "); Console::puti(frame); Console::puts("\n");
 
     /* -- MOST OF WHAT WE NEED IS SETUP. THE KERNEL CAN START. */
 
@@ -95,8 +110,6 @@ int main() {
     //kernel_mem_pool.mark_inaccessible(KERNEL_POOL_START_FRAME+1, 8);
     
     test_memory(&kernel_mem_pool, 32);
-    int frame;
-    int ret;
 
     frame = process_mem_pool.get_frames(129); Console::puts("get frame = "); Console::puti(frame); Console::puts("\n");
     frame = process_mem_pool.get_frames(247); Console::puts("get frame = "); Console::puti(frame); Console::puts("\n");
