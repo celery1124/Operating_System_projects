@@ -25,18 +25,21 @@ void PageTable::init_paging(ContFramePool * _kernel_mem_pool,
 PageTable::PageTable()
 {
    unsigned long page_table;
-   unsigned long prot_mask = 0x03; // kernel mode, R/W, Present
    current_page_table = this;
    // allocate and setup ptd
    page_directory = kernel_mem_pool->get_frames(1);
    // allocate pte
    page_table = kernel_mem_pool->get_freams(1);
-   *page_directory = page_table<<12 + prot_mask;
+   *page_directory = page_table<<12 + 0x03; // kernel mode, R/W, Present
+   for(int i=1;i<PT_ENTRIES_PER_PAGE;i++)
+   {
+      *(page_directory+i) = i<<12 + 0x02; // kernel mode, R/W, not present
+   }
 
    // set up pte
    for(int i=0;i<PT_ENTRIES_PER_PAGE;i++)
    {
-      *(page_table+i) = i<<12 + prot_mask;
+      *(page_table+i) = i<<12 + 0x03; // kernel mode, R/W, Present
    }
    Console::puts("Constructed Page Table object\n");
 }
@@ -44,7 +47,7 @@ PageTable::PageTable()
 
 void PageTable::load()
 {
-   assert(false);
+   
    Console::puts("Loaded page table\n");
 }
 
