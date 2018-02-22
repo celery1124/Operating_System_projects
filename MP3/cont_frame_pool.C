@@ -126,37 +126,196 @@
 /*--------------------------------------------------------------------------*/
 /* METHODS FOR CLASS   C o n t F r a m e P o o l */
 /*--------------------------------------------------------------------------*/
-
+ContFramePool* ContFramePool::head = NULL;
 ContFramePool::ContFramePool(unsigned long _base_frame_no,
-                             unsigned long _nframes,
+                             unsigned long _n_frames,
                              unsigned long _info_frame_no,
                              unsigned long _n_info_frames)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+    base_frame_no = _base_frame_no;
+    nframes = _n_frames;
+    nFreeFrames = _n_frames;
+    info_frame_no = _info_frame_no;
+    if(info_frame_no)
+        n_info_frames = _n_info_frames;
+    else
+        n_info_frames = needed_info_frames(nframes);
+
+    // Bitmap must fit in n_of_frames
+    assert(_n_frames <= FRAME_SIZE * 4 * n_info_frames);
+    
+    // If _info_frame_no is zero then we keep management info in the first
+    //frame, else we use the provided frame to keep management info
+    if(info_frame_no == 0) {
+        bitmap = (unsigned char *) (base_frame_no * FRAME_SIZE);
+    } else {
+        bitmap = (unsigned char *) (info_frame_no * FRAME_SIZE);
+    }
+    
+    // Number of frames must be multiple of 4 (2 bits map a frame)
+    assert ((nframes % 4 ) == 0);
+
+    // Everything ok. Proceed to mark all bits in the bitmap
+    for(int i=0; i*4 < _n_frames; i++) {
+        bitmap[i] = 0xFF;
+    }
+    
+    // Mark the first frame as being used if it is being used
+    if(_info_frame_no == 0) {
+        unsigned char mask = 0xC0;
+        for(int i = 0; i<n_info_frames; i++)
+        {
+            bitmap[i/4] &= ~(mask >> ((i % 4) * 2));
+            nFreeFrames--;
+        }
+    }
+
+    // list all the constructed frame pool
+    next = NULL;
+    if(head == NULL)
+    {
+        head = this;
+    }
+    else
+    {
+        ContFramePool *p = head;
+        while (p->next != NULL) p = p->next;
+        p->next = this;
+    }
+    
+    Console::puts("Frame Pool initialized\n");
 }
 
 unsigned long ContFramePool::get_frames(unsigned int _n_frames)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+    // Any frames left to allocate?
+    if(nFreeFrames <= _n_frames) return 0;
+
+    unsigned int frame_no;
+    unsigned int remain = _n_frames;
+    // Find _n_frames of contiounes free frames (first fit)
+    unsigned int bitmap_index = 0, shift_index = 0;
+    unsigned char mask = 0xC0;
+
+    int start_frame = info_frame_no == 0?n_info_frames:0;
+
+    for (int i = start_frame; i < nframes; i++)
+    {
+        bitmap_index = i / 4;
+        shift_index = (i % 4) * 2;
+        mask = 0xC0 >> shift_index;
+        if((bitmap[bitmap_index] & mask) == mask)
+            remain--;
+        else
+            remain = _n_frames;
+
+        if(remain == 0) 
+        {
+            // update bitmap of the allocated frames
+            while(remain++ < _n_frames)
+            {
+                bitmap_index = i / 4;
+                shift_index = (i % 4) * 2;     
+                if(remain == _n_frames)
+                {
+                    mask = ~(0x80 >> shift_index);
+                    bitmap[bitmap_index] &= mask;
+                }
+                else
+                {
+                    mask = ~(0xC0 >> shift_index);
+                    bitmap[bitmap_index] &= mask;
+                }
+                i--;
+            }
+            // calculate start frame_no
+            frame_no = base_frame_no + bitmap_index*4 + shift_index/2;
+            return frame_no;
+        }
+    } 
+
+    // no continous _n_frames found
+    return 0;
+
 }
 
 void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
                                       unsigned long _n_frames)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+    // Mark all frames in the range as being used.
+    int i ;
+    for(i = _base_frame_no; i < _base_frame_no + _n_frames; i++){
+        mark_inaccessible(i);
+    }
+}
+
+void ContFramePool::mark_inaccessible(unsigned long _frame_no)
+{
+    // Let's first do a range check.
+    assert ((_frame_no >= base_frame_no) && (_frame_no < base_frame_no + nframes));
+    
+    unsigned int bitmap_index = (_frame_no - base_frame_no) / 4;
+    unsigned int shift_index = ((_frame_no - base_frame_no) % 4) * 2;
+    unsigned char and_mask = 0xC0 >> shift_index;
+    unsigned char or_mask = 0x80 >> shift_index;
+    
+    // Is the frame being used already?
+    assert((bitmap[bitmap_index] & and_mask) == and_mask);
+    
+    // Update bitmap (as 2)
+    bitmap[bitmap_index] &= ~and_mask;
+    bitmap[bitmap_index] |= or_mask;
+    nFreeFrames--;
 }
 
 void ContFramePool::release_frames(unsigned long _first_frame_no)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
+    ContFramePool *p = head;
+    while(p != NULL)
+    {
+        if(_first_frame_no >= p->base_frame_no && _first_frame_no < (p->base_frame_no + p->nframes))
+        {
+            p->_release_frames(_first_frame_no);
+            return;
+        }
+        p = p->next;
+    }
+
+    // something went wrong, release frame not found in pool
     assert(false);
+}
+
+void ContFramePool::_release_frames(unsigned long _first_frame_no)
+{
+    unsigned int bitmap_index = (_first_frame_no - base_frame_no) / 4;
+    unsigned int shift_index = ((_first_frame_no - base_frame_no) % 4) * 2;
+    unsigned char mask = 0xC0 >> shift_index;
+
+    // check if _first_frame_no is the first frame of allocated frames
+    if((bitmap[bitmap_index] & mask) != (0x40 >> shift_index)) return;
+
+    // update the bitmap first release frame (1->3) following (0->#)
+    do 
+    {
+        bitmap[bitmap_index] = bitmap[bitmap_index] | mask;
+        shift_index += 2;
+        if(shift_index == 8)
+        {
+            shift_index = 0;
+            bitmap_index++;
+        }
+        mask = 0xC0 >> shift_index;
+    }
+    while((bitmap[bitmap_index] & mask) == 0);
+    
 }
 
 unsigned long ContFramePool::needed_info_frames(unsigned long _n_frames)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+    if(_n_frames == 0)
+        return 0;
+    else if(_n_frames*2 % (FRAME_SIZE*8) == 0)
+        return (_n_frames*2/(FRAME_SIZE*8));
+    else
+        return (_n_frames*2/(FRAME_SIZE*8) + 1);
 }
