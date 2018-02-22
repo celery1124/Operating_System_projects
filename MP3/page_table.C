@@ -30,10 +30,10 @@ PageTable::PageTable()
    page_directory = (unsigned long *)(kernel_mem_pool->get_frames(1) * PAGE_SIZE);
    // allocate pte
    page_table = (unsigned long *)(kernel_mem_pool->get_frames(1) * PAGE_SIZE);
-   *page_directory = (unsigned long)page_table + 0x03; // kernel mode, R/W, Present
+   page_directory[0] = (unsigned long)page_table + 0x03; // kernel mode, R/W, Present
    for(int i=1;i<ENTRIES_PER_PAGE;i++)
    {
-      page_directory[i] = 0x02; // kernel mode, R/W, not present
+      page_directory[i] = 0; // kernel mode, R/W, not present
    }
 
    // set up pte
@@ -59,7 +59,57 @@ void PageTable::enable_paging()
 
 void PageTable::handle_fault(REGS * _r)
 {
-  assert(false);
+  // handle protection fault
+  if((_r->err_code & 0x1) == 1)
+  {
+      if(((_r->err_code & 0x2) != 0) && ((_r->err_code & 0x4) != 0))
+      {
+          Console::puts("write protection fault!\n");
+          Console::puts("supervisor protection fault!\n");
+          assert(false);
+      }
+      else if((_r->err_code & 0x2) != 0)
+      {
+          Console::puts("write protection fault!\n");
+          assert(false);
+      }
+      else if((_r->err_code & 0x4) != 0)
+      {
+          Console::puts("supervisor protection fault!\n");
+          assert(false);
+      }
+  }
+  // handle not present fault
+  else
+  {
+      unsigned long fault_addr = read_cr2();
+      int ptd_offset = fault_addr>>22;
+      int pte_offset = (fault_addr<<10)>>22;
+      // check ptd entry
+      // ptd entry not present
+      if((current_page_table->page_directory[ptd_offset] & 0x1) == 0)
+      {
+        // pte must not exist, first allocate page table
+          unsigned long *page_table = (unsigned long *)(kernel_mem_pool->get_frames(1) * PAGE_SIZE);
+          current_page_table->page_directory[ptd_offset] = (unsigned long)page_table + 0x3;
+          
+          // set up pte
+          for(int i=0;i<ENTRIES_PER_PAGE;i++)
+          {
+            page_table[i] = 0; // not present
+          }
+          page_table[pte_offset] = (unsigned long)(kernel_mem_pool->get_frames(1) * PAGE_SIZE) + 0x3;
+      }
+      // pte not preset
+      else 
+      {
+          unsigned long *page_table = (unsigned long *)((current_page_table->page_directory[fault_addr>>22]) | 0xfffff000);
+          if((page_table[pte_offset] & 0x1) == 0)
+          {
+              page_table[pte_offset] = (unsigned long)(kernel_mem_pool->get_frames(1) * PAGE_SIZE) + 0x3;
+          }
+      }
+  }
   Console::puts("handled page fault\n");
 }
 
