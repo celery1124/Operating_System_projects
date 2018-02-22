@@ -47,13 +47,13 @@ PageTable::PageTable()
 
 void PageTable::load()
 {
-   
+   write_cr3(page_directory);
    Console::puts("Loaded page table\n");
 }
 
 void PageTable::enable_paging()
 {
-   assert(false);
+   write_cr0(read_cr0() | 0x80000000);
    Console::puts("Enabled paging\n");
 }
 
