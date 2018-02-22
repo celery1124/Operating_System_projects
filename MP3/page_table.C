@@ -33,13 +33,13 @@ PageTable::PageTable()
    *page_directory = (unsigned long)page_table + 0x03; // kernel mode, R/W, Present
    for(int i=1;i<ENTRIES_PER_PAGE;i++)
    {
-      page_directory[i] = i<<12 + 0x02; // kernel mode, R/W, not present
+      page_directory[i] = 0x02; // kernel mode, R/W, not present
    }
 
    // set up pte
    for(int i=0;i<ENTRIES_PER_PAGE;i++)
    {
-      page_table[i] = i<<12 + 0x03; // kernel mode, R/W, Present
+      page_table[i] = (i<<12) + 0x03; // kernel mode, R/W, Present
    }
    Console::puts("Constructed Page Table object\n");
 }
