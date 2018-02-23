@@ -59,32 +59,39 @@ void PageTable::enable_paging()
 
 void PageTable::handle_fault(REGS * _r)
 {
+  unsigned long fault_addr = read_cr2();
+  int ptd_offset = fault_addr>>22;
+  int pte_offset = (fault_addr<<10)>>22;
   // handle protection fault
   if((_r->err_code & 0x1) == 1)
   {
-      if(((_r->err_code & 0x2) != 0) && ((_r->err_code & 0x4) != 0))
+      unsigned long *page_table = (unsigned long *)(page_directory[ptd_offset]);
+      int pte_flag = page_table[pte_offset] & 0xC;
+      if(_r->err_code & 0x4 == 0) // we are in kernel reference mode
       {
-          Console::puts("write protection fault!\n");
-          Console::puts("supervisor protection fault!\n");
-          assert(false);
+          if((_r->err_code & 0x2) > (pte_flag & 0x2))
+          {
+              Console::puts("kernel touch Read only page!\n");
+              assert(false);
+          }
       }
-      else if((_r->err_code & 0x2) != 0)
+      else // we are in user reference mode
       {
-          Console::puts("write protection fault!\n");
-          assert(false);
-      }
-      else if((_r->err_code & 0x4) != 0)
-      {
-          Console::puts("supervisor protection fault!\n");
-          assert(false);
+          if((_r->err_code & 0x4) > (pte_flag & 0x2))
+          {
+              Console::puts("user touch kernel page!\n");
+              assert(false);
+          }
+          else if ((_r->err_code & 0x2) > (pte_flag & 0x2))
+          {
+              Console::puts("user touch Read only page!\n");
+              assert(false);
+          }
       }
   }
   // handle not present fault
   else
   {
-      unsigned long fault_addr = read_cr2();
-      int ptd_offset = fault_addr>>22;
-      int pte_offset = (fault_addr<<10)>>22;
       unsigned long new_frame;
       // check ptd entry
       // ptd entry not present
