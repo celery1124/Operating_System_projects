@@ -103,7 +103,7 @@ void PageTable::handle_fault(REGS * _r)
       // pte not preset
       else 
       {
-          unsigned long *page_table = (unsigned long *)((current_page_table->page_directory[fault_addr>>22]) | 0xfffff000);
+          unsigned long *page_table = (unsigned long *)((current_page_table->page_directory[fault_addr>>22]) & 0xfffff000);
           if((page_table[pte_offset] & 0x1) == 0)
           {
               page_table[pte_offset] = (unsigned long)(kernel_mem_pool->get_frames(1) * PAGE_SIZE) + 0x3;
