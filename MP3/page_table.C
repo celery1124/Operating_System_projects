@@ -85,20 +85,31 @@ void PageTable::handle_fault(REGS * _r)
       unsigned long fault_addr = read_cr2();
       int ptd_offset = fault_addr>>22;
       int pte_offset = (fault_addr<<10)>>22;
+      unsigned long new_frame;
       // check ptd entry
       // ptd entry not present
       if((current_page_table->page_directory[ptd_offset] & 0x1) == 0)
       {
-        // pte must not exist, first allocate page table
-          unsigned long *page_table = (unsigned long *)(kernel_mem_pool->get_frames(1) * PAGE_SIZE);
+          // pte must not exist, first allocate page table
+          if((new_frame = kernel_mem_pool->get_frames(1)) == 0)
+          {
+              Console::puts("no frame available for page table\n");
+              assert(false);
+          }
+          unsigned long *page_table = (unsigned long *)(new_frame * PAGE_SIZE);
           current_page_table->page_directory[ptd_offset] = (unsigned long)page_table + 0x3;
           
           // set up pte
           for(int i=0;i<ENTRIES_PER_PAGE;i++)
           {
-            page_table[i] = 0; // not present
+              page_table[i] = 0; // not present
           }
-          page_table[pte_offset] = (unsigned long)(kernel_mem_pool->get_frames(1) * PAGE_SIZE) + 0x3;
+          if((new_frame = kernel_mem_pool->get_frames(1)) == 0)
+          {
+              Console::puts("no frame available for faulted page\n");
+              assert(false);
+          }
+          page_table[pte_offset] = new_frame * PAGE_SIZE + 0x3;
       }
       // pte not preset
       else 
@@ -106,7 +117,17 @@ void PageTable::handle_fault(REGS * _r)
           unsigned long *page_table = (unsigned long *)((current_page_table->page_directory[fault_addr>>22]) & 0xfffff000);
           if((page_table[pte_offset] & 0x1) == 0)
           {
-              page_table[pte_offset] = (unsigned long)(kernel_mem_pool->get_frames(1) * PAGE_SIZE) + 0x3;
+              if((new_frame = kernel_mem_pool->get_frames(1)) == 0)
+              {
+                  Console::puts("no frame available for faulted page\n");
+                  assert(false);
+              }
+              page_table[pte_offset] = new_frame * PAGE_SIZE + 0x3;
+          }
+          else
+          {
+              Console::puts("something wrong in page fault handler\n");
+              assert(false);
           }
       }
   }
