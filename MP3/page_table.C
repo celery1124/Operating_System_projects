@@ -54,6 +54,7 @@ void PageTable::load()
 void PageTable::enable_paging()
 {
    write_cr0((unsigned long)(read_cr0() | 0x80000000));
+   paging_enabled = 1;
    Console::puts("Enabled paging\n");
 }
 
@@ -65,7 +66,7 @@ void PageTable::handle_fault(REGS * _r)
   // handle protection fault
   if((_r->err_code & 0x1) == 1)
   {
-      unsigned long *page_table = (unsigned long *)(page_directory[ptd_offset]);
+      unsigned long *page_table = (unsigned long *)(current_page_table->page_directory[ptd_offset]);
       int pte_flag = page_table[pte_offset] & 0xC;
       if(_r->err_code & 0x4 == 0) // we are in kernel reference mode
       {
@@ -100,7 +101,7 @@ void PageTable::handle_fault(REGS * _r)
           // pte must not exist, first allocate page table
           if((new_frame = kernel_mem_pool->get_frames(1)) == 0)
           {
-              Console::puts("no frame available for page table\n");
+              Console::puts("no frame in kernel pool available for page table\n");
               assert(false);
           }
           unsigned long *page_table = (unsigned long *)(new_frame * PAGE_SIZE);
@@ -111,25 +112,25 @@ void PageTable::handle_fault(REGS * _r)
           {
               page_table[i] = 0; // not present
           }
-          if((new_frame = kernel_mem_pool->get_frames(1)) == 0)
+          if((new_frame = process_mem_pool->get_frames(1)) == 0)
           {
-              Console::puts("no frame available for faulted page\n");
+              Console::puts("no frame in process pool available for faulted page\n");
               assert(false);
           }
-          page_table[pte_offset] = new_frame * PAGE_SIZE + 0x3;
+          page_table[pte_offset] = new_frame * PAGE_SIZE + 0x1;
       }
       // pte not preset
       else 
       {
-          unsigned long *page_table = (unsigned long *)((current_page_table->page_directory[fault_addr>>22]) & 0xfffff000);
+          unsigned long *page_table = (unsigned long *)((current_page_table->page_directory[ptd_offset]) & 0xfffff000);
           if((page_table[pte_offset] & 0x1) == 0)
           {
-              if((new_frame = kernel_mem_pool->get_frames(1)) == 0)
+              if((new_frame = process_mem_pool->get_frames(1)) == 0)
               {
-                  Console::puts("no frame available for faulted page\n");
+                  Console::puts("no frame in process pool available for faulted page\n");
                   assert(false);
               }
-              page_table[pte_offset] = new_frame * PAGE_SIZE + 0x3;
+              page_table[pte_offset] = new_frame * PAGE_SIZE + 0x1; // kernel R/W
           }
           else
           {
