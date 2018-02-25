@@ -25,7 +25,6 @@ void PageTable::init_paging(ContFramePool * _kernel_mem_pool,
 PageTable::PageTable()
 {
    unsigned long *page_table;
-   current_page_table = this;
    // allocate and setup ptd
    page_directory = (unsigned long *)(kernel_mem_pool->get_frames(1) * PAGE_SIZE);
    // allocate pte
@@ -47,6 +46,7 @@ PageTable::PageTable()
 
 void PageTable::load()
 {
+   current_page_table = this;
    write_cr3((unsigned long)page_directory);
    Console::puts("Loaded page table\n");
 }
