@@ -46,9 +46,9 @@
 #define MEM_HOLE_SIZE ((1 MB) / Machine::PAGE_SIZE)
 /* we have a 1 MB hole in physical memory starting at address 15 MB */
 
-#define FAULT_ADDR (4 MB)
+#define FAULT_ADDR (400 MB)
 /* used in the code later as address referenced to cause page faults. */
-#define NACCESS ((1 MB) / 4)
+#define NACCESS ((8 MB) / 4)
 /* NACCESS integer access (i.e. 4 bytes in each access) are made starting at address FAULT_ADDR */
 
 /*--------------------------------------------------------------------------*/
@@ -169,13 +169,13 @@ int main() {
     int *foo = (int *) FAULT_ADDR;
     int i;
 
-    for (i=0; i<NACCESS; i++) {
+    for (i=0; i<NACCESS; i = i+128) {
         foo[i] = i;
     }
 
     Console::puts("DONE WRITING TO MEMORY. Now testing...\n");
 
-    for (i=0; i<NACCESS; i++) {
+    for (i=0; i<NACCESS; i = i+128) {
         if(foo[i] != i) {
             Console::puts("TEST FAILED for access number:");
             Console::putui(i);
@@ -183,8 +183,27 @@ int main() {
             break;
         }
     }
+
     if(i == NACCESS) {
         Console::puts("TEST PASSED\n");
+    }
+
+    int random_offset[5] = {1025,1,10*1024+3,6*1024+1,6*1024+127};
+    Console::puts("RAMDOM ACCESS tesing...\n");
+    // random write
+    for(i=0;i<5;i++)
+        foo[NACCESS+random_offset[i]] = random_offset[i];
+
+    for (i=0; i<5; i++) {
+        if(foo[NACCESS+random_offset[i]] != random_offset[i]) {
+            Console::puts("TEST FAILED for access number:");
+            Console::putui(i);
+            Console::puts("\n");
+            break;
+        }
+    }
+    if(i == 5) {
+        Console::puts("RANDOM ACCESS TEST PASSED\n");
     }
 
     /* -- STOP HERE */
