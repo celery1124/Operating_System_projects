@@ -54,7 +54,6 @@ void PageTable::enable_paging()
 {
     write_cr0((unsigned long)(read_cr0() | 0x80000000));
     paging_enabled = 1;
-    write_cr3((unsigned long)page_directory);
     Console::puts("Enabled paging\n");
 }
 
