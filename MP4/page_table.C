@@ -41,6 +41,9 @@ PageTable::PageTable()
     {
       page_table[i] = (i<<12) + 0x03; // kernel mode, R/W, Present
     }
+
+    // init VMPool list
+    head = NULL;
     Console::puts("Constructed Page Table object\n");
 }
 
@@ -148,7 +151,14 @@ void PageTable::handle_fault(REGS * _r)
 
 void PageTable::register_pool(VMPool * _vm_pool)
 {
-    assert(false);
+    if(head == NULL)
+        head = _vm_pool;
+    else
+    {
+        VMPool *p = head;
+        while (p->next != NULL) p = p->next;
+        p->next = _vm_pool;
+    }
     Console::puts("registered VM pool\n");
 }
 

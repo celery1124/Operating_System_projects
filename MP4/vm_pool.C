@@ -16,6 +16,7 @@
 /* INCLUDES */
 /*--------------------------------------------------------------------------*/
 
+#include "machine.H"
 #include "vm_pool.H"
 #include "console.H"
 #include "utils.H"
@@ -48,7 +49,14 @@ VMPool::VMPool(unsigned long  _base_address,
                unsigned long  _size,
                ContFramePool *_frame_pool,
                PageTable     *_page_table) {
-    assert(false);
+    base_address = _base_address;
+    size = _size;
+
+    // nitial allocate pointer and region number, first page sotre metadata
+    alloc_pointer = base_address + PAGE_SIZE;
+    region_no = 0;
+
+    next = NULL;
     Console::puts("Constructed VMPool object.\n");
 }
 
