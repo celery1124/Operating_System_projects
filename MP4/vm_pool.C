@@ -91,7 +91,25 @@ unsigned long VMPool::allocate(unsigned long _size) {
 }
 
 void VMPool::release(unsigned long _start_address) {
-    assert(false);
+    unsigned long page_no;
+    // scan the whole region list
+    for(int i = 0; i < region_no-1; i++)
+    {
+        if(_start_address == region_list[i].start_addr)
+        {
+            // free page one by one
+            for(int j = 0; j < region_list[i].size/PAGE_SIZE; j++)
+            {
+                page_no = region_list[i].start_addr/PAGE_SIZE + j;
+                page_table->free_page(page_no);
+            }
+            // swap the end entry of the region list
+            region_list[i].start_addr = region_list[region_no-1].start_addr;
+            region_list[i].size = region_list[region_no-1].size;
+            retion_no--;
+        }
+    }
+
     Console::puts("Released region of memory.\n");
 }
 
@@ -99,16 +117,13 @@ bool VMPool::is_legitimate(unsigned long _address) {
     if(_address >= base_address && _address < base_address + PAGE_SIZE)
         return true;
 
-    if(region_no > 0)
+    unsigned long start_addr, end_addr;
+    for(int i=0; i < region_no-1; i++)
     {
-        unsigned long start_addr, end_addr;
-        for(int i=0; i < region_no-1; i++)
-        {
-            start_addr = region_list[i].start_addr;
-            end_addr = region_list[i].start_addr + region_list[i].size;
-            if(_address >= start_addr && _address < end_addr)
-                return true;
-        }
+        start_addr = region_list[i].start_addr;
+        end_addr = region_list[i].start_addr + region_list[i].size;
+        if(_address >= start_addr && _address < end_addr)
+            return true;
     }
     return false;
     Console::puts("Checked whether address is part of an allocated region.\n");
