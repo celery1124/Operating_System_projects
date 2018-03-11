@@ -101,16 +101,18 @@ void VMPool::release(unsigned long _start_address) {
             for(int j = 0; j < region_list[i].size/PAGE_SIZE; j++)
             {
                 page_no = region_list[i].start_addr/PAGE_SIZE + j;
-                page_table->free_page(page_no);
+                page_table->free_page(page_no, this);
             }
             // swap the end entry of the region list
             region_list[i].start_addr = region_list[region_no-1].start_addr;
             region_list[i].size = region_list[region_no-1].size;
             retion_no--;
+            Console::puts("Released region of memory.\n");
+            return;
         }
     }
-
-    Console::puts("Released region of memory.\n");
+    // _start_address not in the region list
+    Console::puts("Released address not in the allocated Region.\n");
 }
 
 bool VMPool::is_legitimate(unsigned long _address) {

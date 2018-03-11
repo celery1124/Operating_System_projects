@@ -162,7 +162,25 @@ void PageTable::register_pool(VMPool * _vm_pool)
     Console::puts("registered VM pool\n");
 }
 
-void PageTable::free_page(unsigned long _page_no) {
-    assert(false);
+void PageTable::free_page(unsigned long _page_no, VMPool *_vm_pool) {
+    int ptd_offset = _page_no>>10;
+    int pte_offset = (_page_no<<10)>>10;
+    // reverse look up for page table pages
+    unsigned long *page_table = (unsigned long *)((1023<<22) | (ptd_offset << 12));
+    unsigned long frame_no;
+    // check pte is valid or not
+    if(page_table[pte_offset] & 0x1 == 1)
+    {
+        frame_no = page_table[pte_offset] >> 12;
+        // release physical frame
+        _vm_pool->frame_pool.release_frames(frame_no);
+        // clear pte
+        page_table[pte_offset] = 0;
+        // flush TLB
+        load();
+    }
+    // pte not valid
+    // do nothing
+
     Console::puts("freed page\n");
 }
