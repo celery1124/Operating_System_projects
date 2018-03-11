@@ -56,7 +56,9 @@ VMPool::VMPool(unsigned long  _base_address,
     alloc_pointer = base_address + PAGE_SIZE;
     region_no = 0;
 
+    // register to page table
     next = NULL;
+    _page_table->register_pool(this);
     Console::puts("Constructed VMPool object.\n");
 }
 
