@@ -144,7 +144,6 @@ void PageTable::handle_fault(REGS * _r)
       }
     }
     Console::puts("handled page fault\n");
-    Console::puts("handled page fault\n");
 }
 
 void PageTable::register_pool(VMPool * _vm_pool)
