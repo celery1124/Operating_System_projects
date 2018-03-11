@@ -55,6 +55,7 @@ private:
   PageTable     *page_table;
 
   unsigned long alloc_pointer; // keep allocate memory in one direction like a heap/stack
+  Region *region_list; // start from base_address, bounded by 512 * 8bytes = 1 page
   int region_no; // number of regions 
 
   static VMPool* next; // list for all VMPool in PageTable
