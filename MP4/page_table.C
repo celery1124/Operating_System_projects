@@ -26,15 +26,17 @@ PageTable::PageTable()
     unsigned long *page_table;
     // allocate and setup ptd
     page_directory = (unsigned long *)(kernel_mem_pool->get_frames(1) * PAGE_SIZE);
-    // allocate pte
-    page_table = (unsigned long *)(kernel_mem_pool->get_frames(1) * PAGE_SIZE);
+    // allocate page table pages from process pool
+    page_table = (unsigned long *)(process_mem_pool->get_frames(1) * PAGE_SIZE);
     page_directory[0] = (unsigned long)page_table + 0x03; // kernel mode, R/W, Present
-    for(int i=1;i<ENTRIES_PER_PAGE;i++)
+    for(int i=1;i<ENTRIES_PER_PAGE - 1;i++)
     {
       page_directory[i] = 0; // kernel mode, R/W, not present
     }
+    // for reverse look up
+    page_directory[ENTRIES_PER_PAGE-1] = (unsigned long)page_directory + 0x03; //kernel mode, R/W Present
 
-    // set up pte
+    // set up pte can be access directly in real mode
     for(int i=0;i<ENTRIES_PER_PAGE;i++)
     {
       page_table[i] = (i<<12) + 0x03; // kernel mode, R/W, Present
@@ -65,18 +67,19 @@ void PageTable::handle_fault(REGS * _r)
     // handle protection fault
     if((_r->err_code & 0x1) == 1)
     {
-      unsigned long *page_table = (unsigned long *)(current_page_table->page_directory[ptd_offset]);
-      int pte_flag = page_table[pte_offset] & 0xC;
-      if(_r->err_code & 0x4 == 0) // we are in kernel reference mode
-      {
+        // reverse look up for page table pages
+        unsigned long *page_table = (unsigned long *)((1023<<22) | (ptd_offset << 12));
+        int pte_flag = page_table[pte_offset] & 0xC;
+        if(_r->err_code & 0x4 == 0) // we are in kernel reference mode
+        {
           if((_r->err_code & 0x2) > (pte_flag & 0x2))
           {
               Console::puts("kernel touch Read only page!\n");
               assert(false);
           }
-      }
-      else // we are in user reference mode
-      {
+        }
+        else // we are in user reference mode
+        {
           if((_r->err_code & 0x4) > (pte_flag & 0x2))
           {
               Console::puts("user touch kernel page!\n");
@@ -87,7 +90,7 @@ void PageTable::handle_fault(REGS * _r)
               Console::puts("user touch Read only page!\n");
               assert(false);
           }
-      }
+        }
     }
     // handle not present fault
     else
@@ -98,7 +101,7 @@ void PageTable::handle_fault(REGS * _r)
       if((current_page_table->page_directory[ptd_offset] & 0x1) == 0)
       {
           // pte must not exist, first allocate page table
-          if((new_frame = kernel_mem_pool->get_frames(1)) == 0)
+          if((new_frame = process_mem_pool->get_frames(1)) == 0)
           {
               Console::puts("no frame in kernel pool available for page table\n");
               assert(false);
@@ -106,6 +109,8 @@ void PageTable::handle_fault(REGS * _r)
           unsigned long *page_table = (unsigned long *)(new_frame * PAGE_SIZE);
           current_page_table->page_directory[ptd_offset] = (unsigned long)page_table + 0x3;
           
+          // nned reverse lookup
+          page_table = (unsigned long *)((1023<<22) | (ptd_offset << 12));
           // set up pte
           for(int i=0;i<ENTRIES_PER_PAGE;i++)
           {
@@ -121,7 +126,7 @@ void PageTable::handle_fault(REGS * _r)
       // pte not preset
       else 
       {
-          unsigned long *page_table = (unsigned long *)((current_page_table->page_directory[ptd_offset]) & 0xfffff000);
+          unsigned long *page_table = (unsigned long *)((1023<<22) | (ptd_offset << 12));
           if((page_table[pte_offset] & 0x1) == 0)
           {
               if((new_frame = process_mem_pool->get_frames(1)) == 0)
