@@ -98,13 +98,31 @@ void PageTable::handle_fault(REGS * _r)
     // handle not present fault
     else
     {
+      ContFramePool *frame_pool = NULL;
+      // check fault address legitimate
+      VMPool *p = head;
+      while(p != NULL)
+      {
+          if(p->is_legitimate(fault_addr))
+          {
+              frame_pool = p->frame_pool;
+              break;
+          }
+          p = p->next;
+      }
+      if(frame_pool == NULL)
+      {
+          Console::puts("Segmentation fault\n");
+          assert(false);
+      }
+
       unsigned long new_frame;
       // check ptd entry
       // ptd entry not present
       if((current_page_table->page_directory[ptd_offset] & 0x1) == 0)
       {
           // pte must not exist, first allocate page table
-          if((new_frame = process_mem_pool->get_frames(1)) == 0)
+          if((new_frame = frame_pool->get_frames(1)) == 0)
           {
               Console::puts("no frame in kernel pool available for page table\n");
               assert(false);
@@ -119,7 +137,7 @@ void PageTable::handle_fault(REGS * _r)
           {
               page_table[i] = 0; // not present
           }
-          if((new_frame = process_mem_pool->get_frames(1)) == 0)
+          if((new_frame = frame_pool->get_frames(1)) == 0)
           {
               Console::puts("no frame in process pool available for faulted page\n");
               assert(false);
@@ -132,7 +150,7 @@ void PageTable::handle_fault(REGS * _r)
           unsigned long *page_table = (unsigned long *)((1023<<22) | (ptd_offset << 12));
           if((page_table[pte_offset] & 0x1) == 0)
           {
-              if((new_frame = process_mem_pool->get_frames(1)) == 0)
+              if((new_frame = frame_pool->get_frames(1)) == 0)
               {
                   Console::puts("no frame in process pool available for faulted page\n");
                   assert(false);
