@@ -15,13 +15,12 @@
 /*--------------------------------------------------------------------------*/
 /* INCLUDES */
 /*--------------------------------------------------------------------------*/
-
-#include "machine.H"
 #include "vm_pool.H"
 #include "console.H"
 #include "utils.H"
 #include "assert.H"
 #include "simple_keyboard.H"
+#include "page_table.H"
 
 /*--------------------------------------------------------------------------*/
 /* DATA STRUCTURES */
@@ -55,11 +54,13 @@ VMPool::VMPool(unsigned long  _base_address,
     // nitial allocate pointer and region number, first page sotre metadata
     alloc_pointer = base_address + PAGE_SIZE;
     region_no = 0;
-    region_list = base_address;
+    region_list = (Region *)base_address;
+    frame_pool = _frame_pool;
+    page_table = _page_table;
 
     // register to page table
     next = NULL;
-    _page_table->register_pool(this);
+    page_table->register_pool(this);
     Console::puts("Constructed VMPool object.\n");
 }
 
@@ -101,12 +102,12 @@ void VMPool::release(unsigned long _start_address) {
             for(int j = 0; j < region_list[i].size/PAGE_SIZE; j++)
             {
                 page_no = region_list[i].start_addr/PAGE_SIZE + j;
-                page_table->free_page(page_no, this);
+                page_table->free_page(page_no);
             }
             // swap the end entry of the region list
             region_list[i].start_addr = region_list[region_no-1].start_addr;
             region_list[i].size = region_list[region_no-1].size;
-            retion_no--;
+            region_no--;
             Console::puts("Released region of memory.\n");
             return;
         }

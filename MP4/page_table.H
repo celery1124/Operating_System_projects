@@ -92,7 +92,7 @@ public:
     void register_pool(VMPool * _vm_pool);
     /* Register a virtual memory pool with the page table. */
     
-    void free_page(unsigned long _page_no, VMPool *_vm_pool);
+    void free_page(unsigned long _page_no);
     /* If page is valid, release frame and mark page invalid. */
     
 };

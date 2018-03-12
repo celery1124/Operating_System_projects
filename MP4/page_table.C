@@ -100,7 +100,7 @@ void PageTable::handle_fault(REGS * _r)
     {
       ContFramePool *frame_pool = NULL;
       // check fault address legitimate
-      VMPool *p = head;
+      VMPool *p = current_page_table->head;
       while(p != NULL)
       {
           if(p->is_legitimate(fault_addr))
@@ -180,7 +180,7 @@ void PageTable::register_pool(VMPool * _vm_pool)
     Console::puts("registered VM pool\n");
 }
 
-void PageTable::free_page(unsigned long _page_no, VMPool *_vm_pool) {
+void PageTable::free_page(unsigned long _page_no) {
     int ptd_offset = _page_no>>10;
     int pte_offset = (_page_no<<10)>>10;
     // reverse look up for page table pages
@@ -191,7 +191,7 @@ void PageTable::free_page(unsigned long _page_no, VMPool *_vm_pool) {
     {
         frame_no = page_table[pte_offset] >> 12;
         // release physical frame
-        _vm_pool->frame_pool.release_frames(frame_no);
+        ContFramePool::release_frames(frame_no);
         // clear pte
         page_table[pte_offset] = 0;
         // flush TLB

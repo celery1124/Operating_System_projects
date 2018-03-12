@@ -23,7 +23,7 @@
 /*--------------------------------------------------------------------------*/
 /* INCLUDES */
 /*--------------------------------------------------------------------------*/
-
+#include "machine.H"
 #include "utils.H"
 #include "cont_frame_pool.H"
 
@@ -43,22 +43,22 @@ class Region {
 public:
   unsigned long start_addr;
   unsigned long size;
-}
+};
 
 class VMPool { /* Virtual Memory Pool */
+public:
+  ContFramePool *frame_pool;
+  VMPool* next; // list for all VMPool in PageTable
 private:
    /* -- DEFINE YOUR VIRTUAL MEMORY POOL DATA STRUCTURE(s) HERE. */
   static const unsigned int PAGE_SIZE        = Machine::PAGE_SIZE;
   unsigned long  base_address;
   unsigned long  size;
-  ContFramePool *frame_pool;
   PageTable     *page_table;
 
   unsigned long alloc_pointer; // keep allocate memory in one direction like a heap/stack
   Region *region_list; // start from base_address, bounded by 512 * 8bytes = 1 page
   int region_no; // number of regions 
-
-  static VMPool* next; // list for all VMPool in PageTable
 
 public:
    VMPool(unsigned long  _base_address,
