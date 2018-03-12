@@ -242,9 +242,9 @@ int main() {
     Console::puts("of the VM Pool memory allocator.\n");
     Console::puts("Please be patient...\n");
     Console::puts("Testing the memory allocation on code_pool...\n");
-    GenerateVMPoolMemoryReferences(&code_pool, 50, 100);
+    GenerateVMPoolMemoryReferences(&code_pool, 5000, 100);
     Console::puts("Testing the memory allocation on heap_pool...\n");
-    GenerateVMPoolMemoryReferences(&heap_pool, 50, 100);
+    GenerateVMPoolMemoryReferences(&heap_pool, 5000, 100);
 
 #endif
 

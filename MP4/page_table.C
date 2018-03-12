@@ -192,6 +192,7 @@ void PageTable::free_page(unsigned long _page_no) {
         frame_no = page_table[pte_offset] >> 12;
         // release physical frame
         ContFramePool::release_frames(frame_no);
+        Console::puts("freed page\n");
         // clear pte
         page_table[pte_offset] = 0;
         // flush TLB
@@ -200,6 +201,4 @@ void PageTable::free_page(unsigned long _page_no) {
     }
     // pte not valid
     // do nothing
-
-    Console::puts("freed page\n");
 }
