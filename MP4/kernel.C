@@ -243,11 +243,12 @@ int main() {
     Console::puts("of the VM Pool memory allocator.\n");
     Console::puts("Please be patient...\n");
     Console::puts("Testing the memory allocation on code_pool...\n");
-    GenerateVMPoolMemoryReferences(&code_pool, 500, 100);
+    GenerateVMPoolMemoryReferences(&code_pool, 50, 100);
     Console::puts("Testing the memory allocation on heap_pool...\n");
     GenerateVMPoolMemoryReferences(&heap_pool, 50, 100);
 
     PageTable pt2;
+    pt2.load();
     VMPool heap_pool2(1 GB, 256 MB, &process_mem_pool, &pt2);
 
     Console::puts("Testing the memory allocation on heap_pool2 in second page table...\n");
@@ -277,7 +278,8 @@ void GeneratePageTableMemoryReferences(unsigned long start_address, int n_refere
 void GenerateVMPoolMemoryReferences(VMPool *pool, int size1, int size2) {
    current_pool = pool;
    for(int i=1; i<size1; i++) {
-      int *arr = new int[size2 * i];\
+      int *arr = new int[size2 * i];
+      Console::puts("Allocation i = "); Console::puti(i); Console::puts("\n");
       if(pool->is_legitimate((unsigned long)arr) == false) {
          TestFailed();
       }
