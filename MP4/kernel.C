@@ -246,8 +246,12 @@ int main() {
     GenerateVMPoolMemoryReferences(&code_pool, 500, 100);
     Console::puts("Testing the memory allocation on heap_pool...\n");
     GenerateVMPoolMemoryReferences(&heap_pool, 50, 100);
-    Console::puts("Testing the memory allocation on heap_pool...\n");
-    GenerateVMPoolMemoryReferences2(&heap_pool, 10, 100, 100);
+
+    PageTable pt2;
+    VMPool heap_pool2(1 GB, 256 MB, &process_mem_pool, &pt2);
+
+    Console::puts("Testing the memory allocation on heap_pool2 in second page table...\n");
+    GenerateVMPoolMemoryReferences2(&heap_pool2, 10, 100, 100);
 
 #endif
 
