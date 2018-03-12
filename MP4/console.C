@@ -178,12 +178,27 @@ void Console::putch(const char _c){
     move_cursor();
 }
 
+ void Console::myPuts(const char * _s)
+  {
+    for (int i = 0; i < strlen(_s); i++) {
+        Machine::outportb(0xe9, _s[i]);
+    }
+  }
+
+  void Console::myPuti(const int _n)
+  {
+    char foostr[15];
+    int2str(_n, foostr);
+    myPuts(foostr);
+  }
+
 /* Uses the above routine to output a string... */
 void Console::puts(const char * _s) {
 
     for (int i = 0; i < strlen(_s); i++) {
         putch(_s[i]);
     }
+    myPuts(_s);
 }
 
 void Console::puti(const int _n) {
@@ -191,6 +206,7 @@ void Console::puti(const int _n) {
 
   int2str(_n, foostr);
   puts(foostr);
+  myPuti(_n);
 }
 
 void Console::putui(const unsigned int _n) {

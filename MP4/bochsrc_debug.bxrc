@@ -50,3 +50,5 @@ clock: sync=realtime, time0=946681200   # Sat Jan  1 00:00:00 2000\
 # gdb 
 gdbstub: enabled=1, port=1234, text_base=0, data_base=0, bss_base=0
 
+# redirect bochs output to shell
+port_e9_hack: enabled=1
