@@ -185,13 +185,6 @@ void Console::putch(const char _c){
     }
   }
 
-  void Console::myPuti(const int _n)
-  {
-    char foostr[15];
-    int2str(_n, foostr);
-    myPuts(foostr);
-  }
-
 /* Uses the above routine to output a string... */
 void Console::puts(const char * _s) {
 
@@ -206,7 +199,6 @@ void Console::puti(const int _n) {
 
   int2str(_n, foostr);
   puts(foostr);
-  myPuti(_n);
 }
 
 void Console::putui(const unsigned int _n) {

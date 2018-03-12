@@ -182,7 +182,7 @@ void PageTable::register_pool(VMPool * _vm_pool)
 
 void PageTable::free_page(unsigned long _page_no) {
     int ptd_offset = _page_no>>10;
-    int pte_offset = _page_no & 0xFFF;
+    int pte_offset = _page_no & 0x3FF;
     // reverse look up for page table pages
     unsigned long *page_table = (unsigned long *)((1023<<22) | (ptd_offset << 12));
     unsigned long frame_no;

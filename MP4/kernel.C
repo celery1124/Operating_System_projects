@@ -271,6 +271,7 @@ void GenerateVMPoolMemoryReferences(VMPool *pool, int size1, int size2) {
    current_pool = pool;
    for(int i=1; i<size1; i++) {
       int *arr = new int[size2 * i];
+      Console::puts("Allocation i = "); Console::puti(i); Console::puts("\n");
       if(pool->is_legitimate((unsigned long)arr) == false) {
          TestFailed();
       }
@@ -282,7 +283,10 @@ void GenerateVMPoolMemoryReferences(VMPool *pool, int size1, int size2) {
             TestFailed();
          }
       }
+      if(i == 140)
+        int test = 1;
       delete arr;
+      Console::puts("Deallocation i = "); Console::puti(i); Console::puts("\n");
    }
 }
 
