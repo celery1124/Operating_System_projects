@@ -270,8 +270,7 @@ void GeneratePageTableMemoryReferences(unsigned long start_address, int n_refere
 void GenerateVMPoolMemoryReferences(VMPool *pool, int size1, int size2) {
    current_pool = pool;
    for(int i=1; i<size1; i++) {
-      int *arr = new int[size2 * i];
-      Console::puts("Allocation i = "); Console::puti(i); Console::puts("\n");
+      int *arr = new int[size2 * i];\
       if(pool->is_legitimate((unsigned long)arr) == false) {
          TestFailed();
       }
@@ -283,10 +282,34 @@ void GenerateVMPoolMemoryReferences(VMPool *pool, int size1, int size2) {
             TestFailed();
          }
       }
-      if(i == 140)
-        int test = 1;
       delete arr;
-      Console::puts("Deallocation i = "); Console::puti(i); Console::puts("\n");
+   }
+}
+
+void GenerateVMPoolMemoryReferences2(VMPool *pool,int size0, int size1, int size2) {
+   current_pool = pool;
+   for(int k=0; k<size0; k++)
+   {
+      int **arr_list = new int*[size1];
+      for(int i=0; i<size1; i++) {
+        arr_list[i] = new int[size2 * (i + 1)];
+        Console::puts("Allocation i = "); Console::puti(i); Console::puts("\n");
+        if(pool->is_legitimate((unsigned long)arr_list[i]) == false) {
+           TestFailed();
+        }
+        for(int j=0; j<size2*i; j++) {
+           arr_list[i][j] = j;
+        }
+        for(int j=size2*i - 1; j>=0; j--) {
+           if(arr_list[i][j] != j) {
+              TestFailed();
+           }
+        }
+      }
+      for(int i=0; i<size1; i++) {
+        delete arr_list[i];
+        Console::puts("Deallocation i = "); Console::puti(i); Console::puts("\n");
+      }
    }
 }
 
