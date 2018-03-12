@@ -36,8 +36,7 @@ PageTable::PageTable()
     // for reverse look up
     page_directory[ENTRIES_PER_PAGE-1] = (unsigned long)page_directory + 0x03; //kernel mode, R/W Present
 
-    // page table page in the process pool need reverse lookup
-    page_table = (unsigned long *)(1023<<22); // first entry in page directory
+    // set up pte can be access directly in real mode
     for(int i=0;i<ENTRIES_PER_PAGE;i++)
     {
       page_table[i] = (i<<12) + 0x03; // kernel mode, R/W, Present
