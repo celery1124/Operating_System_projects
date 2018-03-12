@@ -27,7 +27,7 @@ PageTable::PageTable()
     // allocate and setup ptd
     page_directory = (unsigned long *)(kernel_mem_pool->get_frames(1) * PAGE_SIZE);
     // allocate page table pages from process pool
-    page_table = (unsigned long *)(process_mem_pool->get_frames(1) * PAGE_SIZE);
+    page_table = (unsigned long *)(_kernel_mem_pool->get_frames(1) * PAGE_SIZE);
     page_directory[0] = (unsigned long)page_table + 0x03; // kernel mode, R/W, Present
     for(int i=1;i<ENTRIES_PER_PAGE - 1;i++)
     {
