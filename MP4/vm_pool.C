@@ -94,7 +94,7 @@ unsigned long VMPool::allocate(unsigned long _size) {
 void VMPool::release(unsigned long _start_address) {
     unsigned long page_no;
     // scan the whole region list
-    for(int i = 0; i < region_no-1; i++)
+    for(int i = 0; i < region_no; i++)
     {
         if(_start_address == region_list[i].start_addr)
         {
@@ -121,7 +121,7 @@ bool VMPool::is_legitimate(unsigned long _address) {
         return true;
 
     unsigned long start_addr, end_addr;
-    for(int i=0; i < region_no-1; i++)
+    for(int i=0; i < region_no; i++)
     {
         start_addr = region_list[i].start_addr;
         end_addr = region_list[i].start_addr + region_list[i].size;
