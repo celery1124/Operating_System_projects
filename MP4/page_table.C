@@ -27,7 +27,7 @@ PageTable::PageTable()
     // allocate and setup ptd
     page_directory = (unsigned long *)(kernel_mem_pool->get_frames(1) * PAGE_SIZE);
     // allocate page table pages from process pool
-    page_table = (unsigned long *)(kernel_mem_pool->get_frames(1) * PAGE_SIZE);
+    page_table = (unsigned long *)(process_mem_pool->get_frames(1) * PAGE_SIZE);
     page_directory[0] = (unsigned long)page_table + 0x03; // kernel mode, R/W, Present
     for(int i=1;i<ENTRIES_PER_PAGE - 1;i++)
     {
@@ -36,10 +36,38 @@ PageTable::PageTable()
     // for reverse look up
     page_directory[ENTRIES_PER_PAGE-1] = (unsigned long)page_directory + 0x03; //kernel mode, R/W Present
 
-    // set up pte can be access directly in real mode
-    for(int i=0;i<ENTRIES_PER_PAGE;i++)
+    // set up pte, 
+    // in virtual memory mode, use reverse lookup 
+    if(paging_enabled)
     {
-      page_table[i] = (i<<12) + 0x03; // kernel mode, R/W, Present
+        int k = 2;
+        // we need to hook up page_table page in current page talbe;
+        // find a empty entry in ptd
+        while(current_page_table->page_directory[ENTRIES_PER_PAGE-k] != 0)
+        {
+            if(k++ == ENTRIES_PER_PAGE)
+            {
+                Console::puts("No empty entry in page directory to temporary setup page table for the page table page for the new PageTable\n");
+                assert(false);
+            }
+        }
+        current_page_table->page_directory[ENTRIES_PER_PAGE-k] = (unsigned long)page_table + 3;
+        // reverse lookup
+        page_table = (unsigned long *)(1023<<22|(ENTRIES_PER_PAGE-k)<<12);
+        for(int i=0;i<ENTRIES_PER_PAGE;i++)
+        {
+            page_table[i] = (unsigned long)(i<<12) + 0x03; // kernel mode, R/W, Present
+        }
+        // safely clear the entry in ptd for the temporary hook up
+        current_page_table->page_directory[ENTRIES_PER_PAGE-k] = 0;
+    }
+    // if in real mode access directly
+    else
+    {
+        for(int i=0;i<ENTRIES_PER_PAGE;i++)
+        {
+            page_table[i] = (unsigned long)(i<<12) + 0x03; // kernel mode, R/W, Present
+        }
     }
 
     // init VMPool list
