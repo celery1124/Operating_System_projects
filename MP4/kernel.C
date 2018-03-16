@@ -64,6 +64,7 @@ void TestFailed();
 void GeneratePageTableMemoryReferences(unsigned long start_address, int n_references);
 void GenerateVMPoolMemoryReferences(VMPool *pool, int size1, int size2);
 void GenerateVMPoolMemoryReferences2(VMPool *pool,int size0, int size1, int size2);
+void RandomAllocateReleaseTest(VMPool *pool,int size0, int size1, int size2);
 
 /*--------------------------------------------------------------------------*/
 /* MEMORY ALLOCATION */
@@ -242,10 +243,20 @@ int main() {
     Console::puts("I am starting with an extensive test\n");
     Console::puts("of the VM Pool memory allocator.\n");
     Console::puts("Please be patient...\n");
+
+    Console::puts("Testing random allocation & release on code_pool...\n");
+    RandomAllocateReleaseTest(&code_pool, 5, 100, 100);
+    Console::puts("code_pool occupy_region_no = "); Console::puti(code_pool.occupy_region_no);Console::puts("\n");
+    Console::puts("code_pool free_region_no = "); Console::puti(code_pool.free_region_no);Console::puts("\n");
+
     Console::puts("Testing the memory allocation on code_pool...\n");
     GenerateVMPoolMemoryReferences(&code_pool, 50, 100);
+    Console::puts("code_pool occupy_region_no = "); Console::puti(code_pool.occupy_region_no);Console::puts("\n");
+    Console::puts("code_pool free_region_no = "); Console::puti(code_pool.free_region_no);Console::puts("\n");
     Console::puts("Testing the memory allocation on heap_pool...\n");
     GenerateVMPoolMemoryReferences(&heap_pool, 50, 100);
+    Console::puts("code_pool occupy_region_no = "); Console::puti(code_pool.occupy_region_no);Console::puts("\n");
+    Console::puts("code_pool free_region_no = "); Console::puti(code_pool.free_region_no);Console::puts("\n");
 
     PageTable pt2;
     pt2.load();
@@ -253,6 +264,8 @@ int main() {
 
     Console::puts("Testing the memory allocation on heap_pool2 in second page table...\n");
     GenerateVMPoolMemoryReferences2(&heap_pool2, 10, 100, 100);
+    Console::puts("code_pool occupy_region_no = "); Console::puti(code_pool.occupy_region_no);Console::puts("\n");
+    Console::puts("code_pool free_region_no = "); Console::puti(code_pool.free_region_no);Console::puts("\n");
 
 #endif
 
@@ -316,6 +329,34 @@ void GenerateVMPoolMemoryReferences2(VMPool *pool,int size0, int size1, int size
         }
       }
       for(int i=0; i<size1; i++) {
+        delete arr_list[i];
+        Console::puts("Deallocation i = "); Console::puti(i); Console::puts("\n");
+      }
+   }
+}
+
+void RandomAllocateReleaseTest(VMPool *pool,int size0, int size1, int size2) {
+   current_pool = pool;
+   for(int k=0; k<size0; k++)
+   {
+      int **arr_list = new int*[size1];
+      for(int i=0; i<size1; i++) {
+        arr_list[i] = new int[size2 * (i + 1)];
+        Console::puts("Allocation i = "); Console::puti(i); Console::puts("\n");
+        if(pool->is_legitimate((unsigned long)arr_list[i]) == false) {
+           TestFailed();
+        }
+        for(int j=0; j<size2*i; j++) {
+           arr_list[i][j] = j;
+        }
+        for(int j=size2*i - 1; j>=0; j--) {
+           if(arr_list[i][j] != j) {
+              TestFailed();
+           }
+        }
+      }
+      // ppartial release
+      for(int i=k%2; i<size1; i = i+2) {
         delete arr_list[i];
         Console::puts("Deallocation i = "); Console::puti(i); Console::puts("\n");
       }
