@@ -51,16 +51,22 @@ VMPool::VMPool(unsigned long  _base_address,
     base_address = _base_address;
     size = _size;
 
-    // nitial allocate pointer and region number, first page sotre metadata
-    alloc_pointer = base_address + PAGE_SIZE;
-    region_no = 0;
-    region_list = (Region *)base_address;
+    // initialize occupy region list
+    occupy_region_no = 0;
+    occupy_region_list = (Region *)base_address;
+
     frame_pool = _frame_pool;
     page_table = _page_table;
 
     // register to page table
     next = NULL;
     page_table->register_pool(this);
+
+    // nitial allocate pointer and region number, first page sotre metadata
+    free_region_no = 1;
+    free_region_list = (Region *)(base_address + PAGE_SIZE);
+    free_region_list[0].start_addr = base_address + PAGE_SIZE * 2;
+    free_region_list[0].size = size - PAGE_SIZE * 2;
     Console::puts("Constructed VMPool object.\n");
 }
 
