@@ -163,14 +163,15 @@ void VMPool::release(unsigned long _start_address) {
 }
 
 bool VMPool::is_legitimate(unsigned long _address) {
-    if(_address >= base_address && _address < base_address + PAGE_SIZE)
+    // mete data space
+    if(_address >= base_address && _address < base_address + PAGE_SIZE * 2)
         return true;
 
     unsigned long start_addr, end_addr;
-    for(int i=0; i < region_no; i++)
+    for(int i=0; i < occupy_region_no; i++)
     {
-        start_addr = region_list[i].start_addr;
-        end_addr = region_list[i].start_addr + region_list[i].size;
+        start_addr = occupy_region_list[i].start_addr;
+        end_addr = occupy_region_list[i].start_addr + occupy_region_list[i].size;
         if(_address >= start_addr && _address < end_addr)
             return true;
     }
