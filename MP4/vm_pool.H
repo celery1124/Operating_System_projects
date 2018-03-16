@@ -56,9 +56,10 @@ private:
   unsigned long  size;
   PageTable     *page_table;
 
-  unsigned long alloc_pointer; // keep allocate memory in one direction like a heap/stack
-  Region *region_list; // start from base_address, bounded by 512 * 8bytes = 1 page
-  int region_no; // number of regions 
+  Region *occupy_region_list; // start from base_address, bounded by 512 * 8bytes = 1 page
+  int occupy_region_no; // number of occupy regions 
+  Region *free_region_list; // start from base_address, bounded by 512 * 8bytes = 1 page
+  int free_region_no; // number of free regions 
 
 public:
    VMPool(unsigned long  _base_address,
