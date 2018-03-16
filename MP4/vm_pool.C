@@ -71,6 +71,7 @@ VMPool::VMPool(unsigned long  _base_address,
 }
 
 unsigned long VMPool::allocate(unsigned long _size) {
+    unsigned long alloc_pointer = 0;
     unsigned long ret;
     // sanctity check
     if(_size == 0)
@@ -86,12 +87,29 @@ unsigned long VMPool::allocate(unsigned long _size) {
         size = (_size / PAGE_SIZE + 1) * PAGE_SIZE;
     }
 
-    // add to region_list and allocate memory 
-    region_list[region_no].start_addr = alloc_pointer;
-    region_list[region_no].size = size;
-    region_no++;
+    // find a region on free region list
+    for(int i = 0; i < free_region_no; i++)
+    {
+        if(free_region_list[i].size >= size)
+        {
+            alloc_pointer = free_region_list[i].start_addr;
+            // adjust free region list
+            free_region_list[i].start_addr += size;
+            free_region_list[i].size -= size;
+            break;
+        }
+    }
+    if(alloc_pointer == 0)
+    {
+        Console::puts("Out of virtual memory space...\n");
+        assert(false);
+    }
+
+    // add to occupy region_list 
+    occupy_region_list[occupy_region_no].start_addr = alloc_pointer;
+    occupy_region_list[occupy_region_no].size = size;
+    occupy_region_no++;
     ret = alloc_pointer;
-    alloc_pointer += size;
     return ret;
 
     Console::puts("Allocated region of memory.\n");
