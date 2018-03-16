@@ -117,21 +117,43 @@ unsigned long VMPool::allocate(unsigned long _size) {
 
 void VMPool::release(unsigned long _start_address) {
     unsigned long page_no;
+    unsigned long release_size;
     // scan the whole region list
-    for(int i = 0; i < region_no; i++)
+    for(int i = 0; i < occupy_region_no; i++)
     {
-        if(_start_address == region_list[i].start_addr)
+        if(_start_address == occupy_region_list[i].start_addr)
         {
+            release_size = occupy_region_list[i].size;
             // free page one by one
-            for(int j = 0; j < region_list[i].size/PAGE_SIZE; j++)
+            for(int j = 0; j < release_size/PAGE_SIZE; j++)
             {
-                page_no = region_list[i].start_addr/PAGE_SIZE + j;
+                page_no = occupy_region_list[i].start_addr/PAGE_SIZE + j;
                 page_table->free_page(page_no);
             }
-            // swap the end entry of the region list
-            region_list[i].start_addr = region_list[region_no-1].start_addr;
-            region_list[i].size = region_list[region_no-1].size;
-            region_no--;
+            // swap the end entry of the occupy region list
+            occupy_region_list[i].start_addr = occupy_region_list[occupy_region_no-1].start_addr;
+            occupy_region_list[i].size = occupy_region_list[occupy_region_no-1].size;
+            occupy_region_no--;
+
+            // coalesce the release region to free region list
+            int k;
+            for(k = 0; k < free_region_no; k++)
+            {
+                if(_start_address + release_size == free_region_list[k].start_addr)
+                {
+                    free_region_list[k].start_addr -= release_size;
+                    free_region_list[k].size += release_size;
+                    break;
+                }
+            }
+            // cannot coalesce, add a new free region
+            if(k == free_region_no)
+            {
+                free_region_list[free_region_no].start_addr = _start_address;
+                free_region_list[free_region_no].size = release_size;
+                free_region_no++;
+            }
+
             Console::puts("Released region of memory.\n");
             return;
         }
