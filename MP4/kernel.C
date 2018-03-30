@@ -246,17 +246,17 @@ int main() {
 
     Console::puts("Testing random allocation & release on code_pool...\n");
     RandomAllocateReleaseTest(&code_pool, 5, 100, 100);
-    Console::puts("code_pool occupy_region_no = "); Console::puti(code_pool.occupy_region_no);Console::puts("\n");
-    Console::puts("code_pool free_region_no = "); Console::puti(code_pool.free_region_no);Console::puts("\n");
+    //Console::puts("code_pool occupy_region_no = "); Console::puti(code_pool.occupy_region_no);Console::puts("\n");
+    //Console::puts("code_pool free_region_no = "); Console::puti(code_pool.free_region_no);Console::puts("\n");
 
     Console::puts("Testing the memory allocation on code_pool...\n");
     GenerateVMPoolMemoryReferences(&code_pool, 50, 100);
-    Console::puts("code_pool occupy_region_no = "); Console::puti(code_pool.occupy_region_no);Console::puts("\n");
-    Console::puts("code_pool free_region_no = "); Console::puti(code_pool.free_region_no);Console::puts("\n");
+    //Console::puts("code_pool occupy_region_no = "); Console::puti(code_pool.occupy_region_no);Console::puts("\n");
+    //Console::puts("code_pool free_region_no = "); Console::puti(code_pool.free_region_no);Console::puts("\n");
     Console::puts("Testing the memory allocation on heap_pool...\n");
     GenerateVMPoolMemoryReferences(&heap_pool, 50, 100);
-    Console::puts("code_pool occupy_region_no = "); Console::puti(code_pool.occupy_region_no);Console::puts("\n");
-    Console::puts("code_pool free_region_no = "); Console::puti(code_pool.free_region_no);Console::puts("\n");
+    //Console::puts("code_pool occupy_region_no = "); Console::puti(code_pool.occupy_region_no);Console::puts("\n");
+    //Console::puts("code_pool free_region_no = "); Console::puti(code_pool.free_region_no);Console::puts("\n");
 
     PageTable pt2;
     pt2.load();
@@ -264,8 +264,8 @@ int main() {
 
     Console::puts("Testing the memory allocation on heap_pool2 in second page table...\n");
     GenerateVMPoolMemoryReferences2(&heap_pool2, 10, 100, 100);
-    Console::puts("code_pool occupy_region_no = "); Console::puti(code_pool.occupy_region_no);Console::puts("\n");
-    Console::puts("code_pool free_region_no = "); Console::puti(code_pool.free_region_no);Console::puts("\n");
+    //Console::puts("code_pool occupy_region_no = "); Console::puti(code_pool.occupy_region_no);Console::puts("\n");
+    //Console::puts("code_pool free_region_no = "); Console::puti(code_pool.free_region_no);Console::puts("\n");
 
 #endif
 

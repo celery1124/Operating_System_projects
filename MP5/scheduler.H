@@ -53,10 +53,18 @@
 /*--------------------------------------------------------------------------*/
 /* SCHEDULER */
 /*--------------------------------------------------------------------------*/
+class ThreadQueueNode {
+public:
+  Thread * thread;
+  ThreadQueueNode *next;
+};
 
 class Scheduler {
 
   /* The scheduler may need private members... */
+private:
+  ThreadQueueNode *head; // head of the fifo queue
+  ThreadQueueNode *tail; // tail of the fifo queue
   
 public:
 

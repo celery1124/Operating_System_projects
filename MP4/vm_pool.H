@@ -49,7 +49,7 @@ class VMPool { /* Virtual Memory Pool */
 public:
   ContFramePool *frame_pool;
   VMPool* next; // list for all VMPool in PageTable
-public:
+private:
    /* -- DEFINE YOUR VIRTUAL MEMORY POOL DATA STRUCTURE(s) HERE. */
   static const unsigned int PAGE_SIZE        = Machine::PAGE_SIZE;
   unsigned long  base_address;

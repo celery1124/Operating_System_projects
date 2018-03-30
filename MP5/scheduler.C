@@ -46,7 +46,9 @@
 /*--------------------------------------------------------------------------*/
 
 Scheduler::Scheduler() {
-  assert(false);
+  // initialize the queue head/tail pointer
+  head = NULL;
+  tail = NULL;
   Console::puts("Constructed Scheduler.\n");
 }
 
