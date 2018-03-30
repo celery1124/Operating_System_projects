@@ -97,5 +97,7 @@ void Scheduler::add(Thread * _thread) {
 }
 
 void Scheduler::terminate(Thread * _thread) {
-  assert(false);
+  // clean up the thread
+  delete _thread;
+  yield();
 }
