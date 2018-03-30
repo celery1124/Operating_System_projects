@@ -61,7 +61,23 @@ void Scheduler::resume(Thread * _thread) {
 }
 
 void Scheduler::add(Thread * _thread) {
-  assert(false);
+  	// allocate a queue node
+	ThreadQueueNode *n = new ThreadQueueNode;
+	n->_thread = _thread;
+	n->next = NULL;
+	// add the node to head
+	if(head == NULL && tail == NULL)
+	{
+		head = n;
+		tail = n;
+	}
+	else if(head != NULL && tail != NULL)
+	{
+		n->next = head;
+		head = n;
+	}
+	else
+		assert(false);
 }
 
 void Scheduler::terminate(Thread * _thread) {
