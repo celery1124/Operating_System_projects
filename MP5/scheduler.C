@@ -39,7 +39,7 @@
 /* FORWARDS */
 /*--------------------------------------------------------------------------*/
 
-/* -- (none) -- */
+extern Thread * current_thread;
 
 /*--------------------------------------------------------------------------*/
 /* METHODS FOR CLASS   S c h e d u l e r  */
@@ -55,13 +55,18 @@ Scheduler::Scheduler() {
 void Scheduler::yield() {
   	// get the tail of the ready queue
   	ThreadQueueNode *n;
+  	Thread *thread_to_go;
   	if(tail == NULL)
   		assert(flase);
   	else
   	{
   		n = tail;
-
+  		tail->prev->next = NULL;
   	}
+  	thread_to_go = n->thread;
+  	current_thread = thread_to_go;
+  	delete n;
+  	Thread::dispatch_to(thread_to_go);
 }
 
 void Scheduler::resume(Thread * _thread) {
