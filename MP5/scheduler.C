@@ -53,11 +53,19 @@ Scheduler::Scheduler() {
 }
 
 void Scheduler::yield() {
-  assert(false);
+  	// get the tail of the ready queue
+  	ThreadQueueNode *n;
+  	if(tail == NULL)
+  		assert(flase);
+  	else
+  	{
+  		n = tail;
+
+  	}
 }
 
 void Scheduler::resume(Thread * _thread) {
-  assert(false);
+  	add(_thread);
 }
 
 void Scheduler::add(Thread * _thread) {
@@ -65,6 +73,7 @@ void Scheduler::add(Thread * _thread) {
 	ThreadQueueNode *n = new ThreadQueueNode;
 	n->_thread = _thread;
 	n->next = NULL;
+	n->prev = NULL;
 	// add the node to head
 	if(head == NULL && tail == NULL)
 	{
@@ -74,6 +83,7 @@ void Scheduler::add(Thread * _thread) {
 	else if(head != NULL && tail != NULL)
 	{
 		n->next = head;
+		head->prev = n;
 		head = n;
 	}
 	else

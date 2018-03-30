@@ -56,6 +56,7 @@
 class ThreadQueueNode {
 public:
   Thread * thread;
+  ThreadQueueNode *prev;
   ThreadQueueNode *next;
 };
 
