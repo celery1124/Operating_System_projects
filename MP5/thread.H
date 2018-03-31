@@ -72,6 +72,9 @@ public:
        NOTE: _stack points to the beginning of the stack area, 
        i.e., to the bottom of the stack.
     */
+    ~Thread() {delete stack;};
+    /* clean up the thread stack
+    */
     static void register_scheduler(Scheduler *_sched);
     /* register scheduler to interact with it when the thread terminated
        This is called every time scheduler schedule the threads queue

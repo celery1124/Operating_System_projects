@@ -49,10 +49,19 @@ Scheduler::Scheduler() {
   // initialize the queue head/tail pointer
   head = NULL;
   tail = NULL;
+  cleanup_head = NULL;
   Console::puts("Constructed Scheduler.\n");
 }
 
 void Scheduler::yield() {
+    // first we try to clean the terminated threads
+    ThreadCleanNode *clean_n = cleanup_head;
+    while(clean_n != NULL)
+    {
+        delete clean_n->thread;
+        clean_n = clean_n->next;
+    }
+
   	// get the tail of the ready queue
   	ThreadQueueNode *n;
   	Thread *thread_to_go;
@@ -101,7 +110,18 @@ void Scheduler::add(Thread * _thread) {
 }
 
 void Scheduler::terminate(Thread * _thread) {
-  // clean up the thread
-  delete _thread;
+  // add the thread to clean up queue
+  ThreadCleanNode *n = new ThreadCleanNode;
+  n->thread = _thread;
+  n->next = NULL;
+  if(cleanup_head == NULL)
+  {
+      cleanup_head = n;
+  }
+  else
+  {
+      n->next = cleanup_head;
+      cleanup_head = n;
+  }
   yield();
 }

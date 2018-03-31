@@ -60,12 +60,20 @@ public:
   ThreadQueueNode *next;
 };
 
+class ThreadCleanNode {
+public:
+  Thread * thread;
+  ThreadCleanNode *next;
+};
+
 class Scheduler {
 
   /* The scheduler may need private members... */
 private:
   ThreadQueueNode *head; // head of the fifo queue
   ThreadQueueNode *tail; // tail of the fifo queue
+
+  ThreadCleanNode *cleanup_head; // head of the clean up queue
   
 public:
 
