@@ -35,7 +35,6 @@
 
 /* -- THREAD FUNCTION (CALLED WHEN THREAD STARTS RUNNING) */
 typedef void (*Thread_Function)();
-
 class Scheduler;
 /*--------------------------------------------------------------------------*/
 /* THREAD CONTROL BLOCK */
@@ -47,7 +46,6 @@ private:
     char     * esp;         /* The current stack pointer for the thread.*/
                             /* Keep it at offset 0, since the thread 
                                dispatcher relies on this  location! */
-    Scheduler *sched;       /* scheduler registered */
     int        thread_id;   /* thread identifier. Assigned upon creation. */
     char     * stack;       /* pointer to the stack of the thread.*/
     unsigned int stack_size;/* size of the stack (in byte) */
@@ -67,13 +65,14 @@ private:
     */
  
 public: 
+    static Scheduler *sched;/* scheduler registered */
     Thread(Thread_Function _tf, char * _stack, unsigned int _stack_size);
     /* Create a thread that is set up to execute the given thread function. 
        The thread is given a pointer to the stack to use. 
        NOTE: _stack points to the beginning of the stack area, 
        i.e., to the bottom of the stack.
     */
-    void register_scheduler(Scheduler *_sched);
+    static void register_scheduler(Scheduler *_sched);
     /* register scheduler to interact with it when the thread terminated
        This is called every time scheduler schedule the threads queue
     */

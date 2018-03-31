@@ -75,8 +75,10 @@ void Scheduler::resume(Thread * _thread) {
 }
 
 void Scheduler::add(Thread * _thread) {
-  // reguster the shceduler for thread
-  _thread->register_scheduler(this);
+  assert(_thread);
+  // reguster the shceduler for thread (only need to register once)
+  if(Thread::sched != NULL)
+    Thread::register_scheduler(this);
   // allocate a queue node
 	ThreadQueueNode *n = new ThreadQueueNode;
 	n->thread = _thread;

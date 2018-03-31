@@ -49,7 +49,7 @@ Thread * current_thread = 0;
 /* -------------------------------------------------------------------------*/
 /* LOCAL DATA PRIVATE TO THREAD AND DISPATCHER CODE */
 /* -------------------------------------------------------------------------*/
-
+Scheduler * Thread::sched = NULL;
 int Thread::nextFreePid;
 
 /* -------------------------------------------------------------------------*/
@@ -73,8 +73,8 @@ static void thread_shutdown() {
        It terminates the thread by releasing memory and any other resources held by the thread. 
        This is a bit complicated because the thread termination interacts with the scheduler.
      */
-
-    sched->terminate(current_thread);
+    if(Thread::sched != NULL)
+        Thread::sched->terminate(current_thread);
 }
 
 static void thread_start() {
@@ -163,7 +163,7 @@ Thread::Thread(Thread_Function _tf, char * _stack, unsigned int _stack_size) {
 */
 
     /* -- INITIALIZE THREAD */
-    sched = NULL;
+    
     /* ---- THREAD ID */
    
     thread_id = nextFreePid++;
@@ -182,8 +182,8 @@ Thread::Thread(Thread_Function _tf, char * _stack, unsigned int _stack_size) {
 
 }
 
-void register_scheduler(Scheduler *_sched) {
-    sched = _sched;
+void Thread::register_scheduler(Scheduler *_sched) {
+    Thread::sched = _sched;
 }
 
 int Thread::ThreadId() {
