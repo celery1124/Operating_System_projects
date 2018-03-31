@@ -93,7 +93,16 @@ void Scheduler::yield() {
   	}
   	thread_to_go = n->thread;
   	delete n;
+    // disable interrupt
+    if(Machine::interrupts_enabled())
+    {
+        Machine::disable_interrupts();
+        Console::puts("interrupts disabled\n");
+    }
   	Thread::dispatch_to(thread_to_go);
+    // enable interrupt
+    Machine::enable_interrupts();
+    Console::puts("interrupts enabled\n");
 }
 
 void Scheduler::resume(Thread * _thread) {
