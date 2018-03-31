@@ -55,11 +55,28 @@ Scheduler::Scheduler() {
 
 void Scheduler::yield() {
     // first we try to clean the terminated threads
-    ThreadCleanNode *clean_n = cleanup_head;
-    while(clean_n != NULL)
+    ThreadCleanNode *clean_c = cleanup_head;
+    ThreadCleanNode *clean_p = NULL;
+    while(clean_c != NULL)
     {
-        delete clean_n->thread;
-        clean_n = clean_n->next;
+        if(clean_c->thread != current_thread)
+        {
+            // clean up the thread
+            delete clean_c->thread;
+            Console::puts("Thread: "); Console::puti(Thread::CurrentThread()->ThreadId()); Console::puts(" terminated\n");
+            if(clean_p != NULL)
+            {
+                clean_p->next = clean_c->next;
+                delete clean_c;
+            }
+            else
+            {
+                delete clean_c;
+                cleanup_head = NULL;
+            }
+        }
+        clean_p = clean_c;
+        clean_c = clean_c->next;
     }
 
   	// get the tail of the ready queue
@@ -72,9 +89,9 @@ void Scheduler::yield() {
   	{
   		n = tail;
   		tail->prev->next = NULL;
+      tail = tail->prev;
   	}
   	thread_to_go = n->thread;
-  	current_thread = thread_to_go;
   	delete n;
   	Thread::dispatch_to(thread_to_go);
 }
