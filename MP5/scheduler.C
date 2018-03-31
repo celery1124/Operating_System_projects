@@ -75,7 +75,9 @@ void Scheduler::resume(Thread * _thread) {
 }
 
 void Scheduler::add(Thread * _thread) {
-  	// allocate a queue node
+  // reguster the shceduler for thread
+  _thread->register_scheduler(this);
+  // allocate a queue node
 	ThreadQueueNode *n = new ThreadQueueNode;
 	n->thread = _thread;
 	n->next = NULL;

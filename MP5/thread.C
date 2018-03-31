@@ -45,7 +45,6 @@
 Thread * current_thread = 0;
 /* Pointer to the currently running thread. This is used by the scheduler,
    for example. */
-extern Scheduler * SYSTEM_SCHEDULER;
 
 /* -------------------------------------------------------------------------*/
 /* LOCAL DATA PRIVATE TO THREAD AND DISPATCHER CODE */
@@ -75,7 +74,7 @@ static void thread_shutdown() {
        This is a bit complicated because the thread termination interacts with the scheduler.
      */
 
-    SYSTEM_SCHEDULER->terminate(current_thread);
+    sched->terminate(current_thread);
 }
 
 static void thread_start() {
@@ -164,7 +163,7 @@ Thread::Thread(Thread_Function _tf, char * _stack, unsigned int _stack_size) {
 */
 
     /* -- INITIALIZE THREAD */
-
+    sched = NULL;
     /* ---- THREAD ID */
    
     thread_id = nextFreePid++;
@@ -181,6 +180,10 @@ Thread::Thread(Thread_Function _tf, char * _stack, unsigned int _stack_size) {
 
     setup_context(_tf);
 
+}
+
+void register_scheduler(Scheduler *_sched) {
+    sched = _sched;
 }
 
 int Thread::ThreadId() {
