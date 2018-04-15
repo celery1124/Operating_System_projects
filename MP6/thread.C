@@ -29,7 +29,6 @@
 /*--------------------------------------------------------------------------*/
 
 #include "assert.H"
-#include "utils.H"
 #include "console.H"
 
 #include "frame_pool.H"
@@ -37,6 +36,7 @@
 #include "thread.H"
 
 #include "threads_low.H"
+#include "scheduler.H"
 
 /*--------------------------------------------------------------------------*/
 /* EXTERNS */
@@ -49,7 +49,7 @@ Thread * current_thread = 0;
 /* -------------------------------------------------------------------------*/
 /* LOCAL DATA PRIVATE TO THREAD AND DISPATCHER CODE */
 /* -------------------------------------------------------------------------*/
-
+Scheduler * Thread::sched = NULL;
 int Thread::nextFreePid;
 
 /* -------------------------------------------------------------------------*/
@@ -73,11 +73,8 @@ static void thread_shutdown() {
        It terminates the thread by releasing memory and any other resources held by the thread. 
        This is a bit complicated because the thread termination interacts with the scheduler.
      */
-
-    assert(false);
-    /* Let's not worry about it for now. 
-       This means that we should have non-terminating thread functions. 
-    */
+    if(Thread::sched != NULL)
+        Thread::sched->terminate(current_thread);
 }
 
 static void thread_start() {
@@ -166,7 +163,7 @@ Thread::Thread(Thread_Function _tf, char * _stack, unsigned int _stack_size) {
 */
 
     /* -- INITIALIZE THREAD */
-
+    
     /* ---- THREAD ID */
    
     thread_id = nextFreePid++;
@@ -183,6 +180,10 @@ Thread::Thread(Thread_Function _tf, char * _stack, unsigned int _stack_size) {
 
     setup_context(_tf);
 
+}
+
+void Thread::register_scheduler(Scheduler *_sched) {
+    Thread::sched = _sched;
 }
 
 int Thread::ThreadId() {
