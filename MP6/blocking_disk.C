@@ -94,5 +94,21 @@ void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
 
 void BlockingDisk::write(unsigned long _block_no, unsigned char * _buf) {
   // -- REPLACE THIS!!!
-  
+  // first add to disk queue (tail)
+  req_enqueue();
+  SYSTEM_SCHEDULER->yield();
+  // ready to issue command
+  issue_operation(WRITE, _block_no);
+  SYSTEM_SCHEDULER->yield();
+
+  /* write data to port */
+  int i; 
+  unsigned short tmpw;
+  for (i = 0; i < 256; i++) {
+    tmpw = _buf[2*i] | (_buf[2*i+1] << 8);
+    Machine::outportw(0x1F0, tmpw);
+  }
+
+  // remove from request queue
+  req_dequeue();
 }
