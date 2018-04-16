@@ -35,6 +35,8 @@ extern Scheduler * SYSTEM_SCHEDULER;
 BlockingDisk::BlockingDisk(DISK_ID _disk_id, unsigned int _size) 
   : SimpleDisk(_disk_id, _size) {
     SYSTEM_SCHEDULER->disk_register(this);
+    head = NULL;
+    tail = NULL;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -43,12 +45,12 @@ BlockingDisk::BlockingDisk(DISK_ID _disk_id, unsigned int _size)
 
 void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
   // -- REPLACE THIS!!!
-  SimpleDisk::read(_block_no, _buf);
+  
 
 }
 
 
 void BlockingDisk::write(unsigned long _block_no, unsigned char * _buf) {
   // -- REPLACE THIS!!!
-  SimpleDisk::read(_block_no, _buf);
+  
 }

@@ -127,7 +127,8 @@ public:
       }
       else
       {
-          disklist_head->next = disk_inst;
+          disk_inst->next = disklist_head;
+          disklist_head = disk_inst;
       }
 
    }

@@ -32,8 +32,17 @@
 /*--------------------------------------------------------------------------*/
 /* B l o c k i n g D i s k  */
 /*--------------------------------------------------------------------------*/
+class ReqQueueNode {
+public:
+  Thread * thread;
+  ReqQueueNode *next;
+}
 
 class BlockingDisk : public SimpleDisk {
+public:
+  ReqQueueNode *head;
+  ReqQueueNode *tail;
+
 public:
    BlockingDisk(DISK_ID _disk_id, unsigned int _size); 
    /* Creates a BlockingDisk device with the given size connected to the 
