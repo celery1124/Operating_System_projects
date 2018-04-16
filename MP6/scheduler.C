@@ -50,6 +50,7 @@ Scheduler::Scheduler() {
   head = NULL;
   tail = NULL;
   cleanup_head = NULL;
+  disklist_head = NULL;
   Console::puts("Constructed Scheduler.\n");
 }
 

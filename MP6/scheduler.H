@@ -50,6 +50,9 @@
     
  */
 
+// forward declaration
+class BlockingDisk;
+
 /*--------------------------------------------------------------------------*/
 /* SCHEDULER */
 /*--------------------------------------------------------------------------*/
@@ -66,6 +69,12 @@ public:
   ThreadCleanNode *next;
 };
 
+class DiskList {
+public:
+  BlockingDisk *p;
+  BlockingDisk *next;
+}
+
 class Scheduler {
 
   /* The scheduler may need private members... */
@@ -74,6 +83,8 @@ private:
   ThreadQueueNode *tail; // tail of the fifo queue
 
   ThreadCleanNode *cleanup_head; // head of the clean up queue
+
+  DiskList *disklist_head;
   
 public:
 
@@ -105,6 +116,24 @@ public:
    /* Remove the given thread from the scheduler in preparation for destruction
       of the thread. 
       Graciously handle the case where the thread wants to terminate itself.*/
+
+   virtual void disk_register(BlockingDisk * _disk) {
+      DiskList *disk_inst = new DiskList;
+      disk_inst->p = _disk;
+      disk_inst->next = NULL;
+      if (disklist_head == NULL)
+      {
+          disklist_head = disk_inst;
+      }
+      else
+      {
+          disklist_head->next = disk_inst;
+      }
+
+   }
+   /* register a disk to the schedule. Call by the BlockingDisk everytime when 
+      construct
+   */
   
 };
 	

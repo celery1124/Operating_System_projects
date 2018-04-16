@@ -23,12 +23,18 @@
 #include "console.H"
 #include "blocking_disk.H"
 
+#include "thread.H"         /* THREAD MANAGEMENT */
+#include "scheduler.H"
+
+extern Scheduler * SYSTEM_SCHEDULER;
+
 /*--------------------------------------------------------------------------*/
 /* CONSTRUCTOR */
 /*--------------------------------------------------------------------------*/
 
 BlockingDisk::BlockingDisk(DISK_ID _disk_id, unsigned int _size) 
   : SimpleDisk(_disk_id, _size) {
+    SYSTEM_SCHEDULER->disk_register(this);
 }
 
 /*--------------------------------------------------------------------------*/
