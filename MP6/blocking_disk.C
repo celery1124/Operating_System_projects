@@ -45,7 +45,40 @@ BlockingDisk::BlockingDisk(DISK_ID _disk_id, unsigned int _size)
 
 void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
   // -- REPLACE THIS!!!
-  
+  ReqQueueNode *req = new ReqQueueNode;
+  req->thread = Thread::CurrentThread();
+  req->next = NULL;
+  // first add to disk queue (tail)
+  if (tail == NULL)
+  {
+      head = req;
+      tail = req;
+  }
+  else
+  {
+      tail->next = req;
+      tail = req;
+  }
+  SYSTEM_SCHEDULER->yield();
+  // ready to issue command
+  issue_operation(READ, _block_no);
+  SYSTEM_SCHEDULER->yield();
+
+  // read data from port
+  int i;
+  unsigned short tmpw;
+  for (i = 0; i < 256; i++) {
+    tmpw = Machine::inportw(0x1F0);
+    _buf[i*2]   = (unsigned char)tmpw;
+    _buf[i*2+1] = (unsigned char)(tmpw >> 8);
+  }
+
+  // remove from request queue
+  ReqQueueNode *req = head;
+  head = head->next;
+  if(head == NULL)
+    tail = NULL;
+  delete req;
 
 }
 
