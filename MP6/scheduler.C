@@ -108,7 +108,7 @@ void Scheduler::resume(Thread * _thread) {
         Thread *thread = disk->get_head_thread();
         if(thread != NULL)
         {
-            bool flag = disk->is_ready();
+            bool flag = disk->is_ready() || disk->disk_status;
             //Console::puts("check is ready() "); Console::puti(flag);Console::puts(" \n");
             if(flag)
             {

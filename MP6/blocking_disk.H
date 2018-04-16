@@ -43,6 +43,7 @@ class BlockingDisk : public SimpleDisk {
 public:
   ReqQueueNode *head;
   ReqQueueNode *tail;
+  bool disk_status;
 
 protected:
   DISK_ID      disk_id;            /* This disk is either MASTER or SLAVE */

@@ -90,10 +90,11 @@ void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
   
   // first add to disk queue (tail)
   req_enqueue();
-  //SYSTEM_SCHEDULER->yield();
+  disk_status = true;
+  SYSTEM_SCHEDULER->yield();
   // ready to issue command
   issue_operation(READ, _block_no);
-
+  disk_status = false;
   do {
     SYSTEM_SCHEDULER->yield();
   }
