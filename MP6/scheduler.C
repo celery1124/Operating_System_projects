@@ -107,6 +107,21 @@ void Scheduler::yield() {
 }
 
 void Scheduler::resume(Thread * _thread) {
+    // first check disklist to see whether disk request threads are ready
+    DiskList *disk_inst = disklist_head;
+    BlockingDisk *disk;
+    while(disk_inst != NULL)
+    {   
+        disk = disk_inst->disk;
+        if(disk->is_ready())
+        {
+            Thread *thread = disk->get_head_thread();
+            if(thread != NULL)
+              add(thread);
+        }
+        disk_inst = disk_inst->next;
+    }
+    // add current context thread 
   	add(_thread);
 }
 

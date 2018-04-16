@@ -66,6 +66,14 @@ public:
    virtual void req_dequeue();
    /* remove request from request queue, meaning request complete */
 
+   virtual Thread * get_head_thread() {
+      if(head != NULL)
+        return head->thread;
+      else
+        return NULL;
+   }
+   /* return the request queue head thread */
+
 };
 
 #endif

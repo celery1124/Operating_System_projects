@@ -71,7 +71,7 @@ public:
 
 class DiskList {
 public:
-  BlockingDisk *p;
+  BlockingDisk *disk;
   BlockingDisk *next;
 }
 
@@ -119,7 +119,7 @@ public:
 
    virtual void disk_register(BlockingDisk * _disk) {
       DiskList *disk_inst = new DiskList;
-      disk_inst->p = _disk;
+      disk_inst->disk = _disk;
       disk_inst->next = NULL;
       if (disklist_head == NULL)
       {
