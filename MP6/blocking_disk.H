@@ -23,6 +23,7 @@
 
 #include "simple_disk.H"
 
+#include "thread.H"         /* THREAD MANAGEMENT */
 /*--------------------------------------------------------------------------*/
 /* DATA STRUCTURES */ 
 /*--------------------------------------------------------------------------*/
@@ -36,12 +37,18 @@ class ReqQueueNode {
 public:
   Thread * thread;
   ReqQueueNode *next;
-}
+};
 
 class BlockingDisk : public SimpleDisk {
 public:
   ReqQueueNode *head;
   ReqQueueNode *tail;
+
+protected:
+  DISK_ID      disk_id;            /* This disk is either MASTER or SLAVE */
+  void issue_operation(DISK_OPERATION _op, unsigned long _block_no);
+     /* Send a sequence of commands to the controller to initialize the READ/WRITE 
+        operation. This operation is called by read() and write(). */ 
 
 public:
    BlockingDisk(DISK_ID _disk_id, unsigned int _size); 
@@ -52,6 +59,7 @@ public:
       disk controller. */
 
    /* DISK OPERATIONS */
+
 
    virtual void read(unsigned long _block_no, unsigned char * _buf);
    /* Reads 512 Bytes from the given block of the disk and copies them 
@@ -73,6 +81,10 @@ public:
         return NULL;
    }
    /* return the request queue head thread */
+
+   virtual bool is_ready() {
+      return is_ready();
+   }
 
 };
 

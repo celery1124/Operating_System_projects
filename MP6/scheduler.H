@@ -72,8 +72,8 @@ public:
 class DiskList {
 public:
   BlockingDisk *disk;
-  BlockingDisk *next;
-}
+  DiskList *next;
+};
 
 class Scheduler {
 
@@ -117,21 +117,7 @@ public:
       of the thread. 
       Graciously handle the case where the thread wants to terminate itself.*/
 
-   virtual void disk_register(BlockingDisk * _disk) {
-      DiskList *disk_inst = new DiskList;
-      disk_inst->disk = _disk;
-      disk_inst->next = NULL;
-      if (disklist_head == NULL)
-      {
-          disklist_head = disk_inst;
-      }
-      else
-      {
-          disk_inst->next = disklist_head;
-          disklist_head = disk_inst;
-      }
-
-   }
+   virtual void disk_register(BlockingDisk * _disk);
    /* register a disk to the schedule. Call by the BlockingDisk everytime when 
       construct
    */

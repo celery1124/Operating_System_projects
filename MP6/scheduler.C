@@ -22,7 +22,7 @@
 #include "utils.H"
 #include "assert.H"
 #include "simple_keyboard.H"
-
+#include "blocking_disk.H"
 /*--------------------------------------------------------------------------*/
 /* DATA STRUCTURES */
 /*--------------------------------------------------------------------------*/
@@ -167,3 +167,19 @@ void Scheduler::terminate(Thread * _thread) {
   }
   yield();
 }
+
+void Scheduler::disk_register(BlockingDisk * _disk) {
+      DiskList *disk_inst = new DiskList;
+      disk_inst->disk = _disk;
+      disk_inst->next = NULL;
+      if (disklist_head == NULL)
+      {
+          disklist_head = disk_inst;
+      }
+      else
+      {
+          disk_inst->next = disklist_head;
+          disklist_head = disk_inst;
+      }
+
+   }
