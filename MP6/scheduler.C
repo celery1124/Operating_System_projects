@@ -94,7 +94,7 @@ void Scheduler::yield() {
   	}
   	thread_to_go = n->thread;
   	delete n;
-
+    //Console::puts("resume thread "); Console::puti((int)thread_to_go);Console::puts(" \n");
   	Thread::dispatch_to(thread_to_go);
 }
 
@@ -105,12 +105,18 @@ void Scheduler::resume(Thread * _thread) {
     while(disk_inst != NULL)
     {   
         disk = disk_inst->disk;
-        if(disk->is_ready())
+        Thread *thread = disk->get_head_thread();
+        if(thread != NULL)
         {
-            Thread *thread = disk->get_head_thread();
-            if(thread != NULL)
+            bool flag = disk->is_ready();
+            //Console::puts("check is ready() "); Console::puti(flag);Console::puts(" \n");
+            if(flag)
+            {
               add(thread);
+            }
+
         }
+
         disk_inst = disk_inst->next;
     }
     // add current context thread 
@@ -118,6 +124,7 @@ void Scheduler::resume(Thread * _thread) {
 }
 
 void Scheduler::add(Thread * _thread) {
+  //Console::puts("add thread "); Console::puti((int)_thread);Console::puts(" \n");
   assert(_thread);
   // reguster the shceduler for thread (only need to register once)
   if(Thread::sched == NULL)

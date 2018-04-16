@@ -90,10 +90,14 @@ void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
   
   // first add to disk queue (tail)
   req_enqueue();
-  SYSTEM_SCHEDULER->yield();
+  //SYSTEM_SCHEDULER->yield();
   // ready to issue command
   issue_operation(READ, _block_no);
-  SYSTEM_SCHEDULER->yield();
+
+  do {
+    SYSTEM_SCHEDULER->yield();
+  }
+  while (!is_ready());
 
   // read data from port
   int i;
@@ -129,4 +133,15 @@ void BlockingDisk::write(unsigned long _block_no, unsigned char * _buf) {
 
   // remove from request queue
   req_dequeue();
+}
+
+Thread * BlockingDisk::get_head_thread() {
+    if(head != NULL)
+      return head->thread;
+    else
+      return NULL;
+}
+
+bool BlockingDisk::is_ready() {
+    return ((Machine::inportb(0x1F7) & 0x08) != 0);
 }

@@ -74,17 +74,10 @@ public:
    virtual void req_dequeue();
    /* remove request from request queue, meaning request complete */
 
-   virtual Thread * get_head_thread() {
-      if(head != NULL)
-        return head->thread;
-      else
-        return NULL;
-   }
+   virtual Thread * get_head_thread();
    /* return the request queue head thread */
 
-   virtual bool is_ready() {
-      return is_ready();
-   }
+   virtual bool is_ready() ;
 
 };
 
