@@ -43,12 +43,10 @@ BlockingDisk::BlockingDisk(DISK_ID _disk_id, unsigned int _size)
 /* SIMPLE_DISK FUNCTIONS */
 /*--------------------------------------------------------------------------*/
 
-void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
-  // -- REPLACE THIS!!!
+void req_enqueue() {
   ReqQueueNode *req = new ReqQueueNode;
   req->thread = Thread::CurrentThread();
   req->next = NULL;
-  // first add to disk queue (tail)
   if (tail == NULL)
   {
       head = req;
@@ -59,6 +57,21 @@ void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
       tail->next = req;
       tail = req;
   }
+}
+
+void req_dequeue() {
+  ReqQueueNode *req = head;
+  head = head->next;
+  if(head == NULL)
+    tail = NULL;
+  delete req;
+}
+
+void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
+  // -- REPLACE THIS!!!
+  
+  // first add to disk queue (tail)
+  req_enqueue();
   SYSTEM_SCHEDULER->yield();
   // ready to issue command
   issue_operation(READ, _block_no);
@@ -74,11 +87,7 @@ void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
   }
 
   // remove from request queue
-  ReqQueueNode *req = head;
-  head = head->next;
-  if(head == NULL)
-    tail = NULL;
-  delete req;
+  req_dequeue();
 
 }
 

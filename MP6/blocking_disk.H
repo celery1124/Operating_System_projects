@@ -60,6 +60,12 @@ public:
    virtual void write(unsigned long _block_no, unsigned char * _buf);
    /* Writes 512 Bytes from the buffer to the given block on the disk. */
 
+   virtual void req_enqueue();
+   /* put request into request queue */
+
+   virtual void req_dequeue();
+   /* remove request from request queue, meaning request complete */
+
 };
 
 #endif
