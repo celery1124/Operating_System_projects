@@ -363,6 +363,16 @@ int main() {
 
     Console::puts("Hello World!\n");
 
+    class inode {
+    public:
+        unsigned int size;
+        unsigned short direct_index[5];
+        unsigned short indirect_index;
+    };
+    Console::puts("short typesize: "); Console::puti(sizeof(unsigned short)); Console::puts("\n");
+    Console::puts("int typesize: "); Console::puti(sizeof(unsigned int)); Console::puts("\n");
+    Console::puts("inode typesize: "); Console::puti(sizeof(inode)); Console::puts("\n");
+
     /* -- LET'S CREATE SOME THREADS... */
 
     Console::puts("CREATING THREAD 1...\n");

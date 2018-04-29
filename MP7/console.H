@@ -99,6 +99,10 @@ public:
   static void puti(const int _i);
   /* Display a integer on the screen.*/
 
+  static void myPuts(const char * _s);
+
+  static void myPuti(const int _n);
+
   static void putui(const unsigned int _u);
   /* Display a unsigned integer on the screen.*/
 
