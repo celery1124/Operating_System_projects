@@ -69,14 +69,14 @@ private:
      unsigned char inode_bitmap[64];
      unsigned char *data_block_bitmap;
 
-     Inode alloc_inode();
-     /* Allocate Inode for a file, return NULL if no available inode */
+     uint16_t alloc_inode();
+     /* Allocate Inode for a file, return 255 if no available inode */
 
      bool release_inode(uint16_t inode_id);
      /* Release Inode to filesystem */
 
      uint16_t alloc_data_block();
-     /* Allocate free data block */
+     /* Allocate free data block return 0 if no available data block*/
 
      bool release_data_block(uint16_t block_addr);
      /* Release data block */

@@ -35,17 +35,45 @@ FileSystem::FileSystem() {
 /*--------------------------------------------------------------------------*/
 /* FILE SYSTEM FUNCTIONS */
 /*--------------------------------------------------------------------------*/
-Inode FileSystem::alloc_inode(){
-    for (int i = 0; i< 64; i++)
+uint16_t FileSystem::alloc_inode(){
+    uint16_t inode_id = 255;
+    for (uint16_t i = 0; i< 64; i++)
     {
         if (inode_bitmap[i] == 0)
-
+        {
+            inode_id = i;
+            inode_bitmap[i] == 1;
+            break;
+        }
     }
+    // no available inode in the filesystem
+    if (inode_id == 255)
+        return inode_id;
+    // flush inode bitmap
+    unsigned char buf[512];
+    for (int i = 0; i < 64; i++)
+    {
+        buf[i] = inode_bitmap[i];
+    }
+    disk->write(2, buf);
+
+    return inode_id;
 
 }
 
 bool FileSystem::release_inode(uint16_t inode_id){
+    if(inode_bitmap[inode_id] != 1)
+        return false;
 
+    inode_bitmap[inode_id] = 0;
+    // flush inode bitmap
+    unsigned char buf[512];
+    for (int i = 0; i < 64; i++)
+    {
+        buf[i] = inode_bitmap[i];
+    }
+    disk->write(2, buf);
+    return true;
 }
 
 uint16_t FileSystem::alloc_data_block(){
