@@ -18,7 +18,7 @@
 /* DEFINES */
 /*--------------------------------------------------------------------------*/
 
-/* -- (none) -- */
+#define BLOCK_SIZE 512
 
 /*--------------------------------------------------------------------------*/
 /* INCLUDES */
@@ -43,6 +43,16 @@
 /* F i l e S y s t e m  */
 /*--------------------------------------------------------------------------*/
 
+/* file system layout *
+/*--------------------------------------------------------------------------*/
+/* superblock - 0 | file table - 1 | inode bytemap - 2 | inode table - 3,4 | data block bytemap | data block */
+/*--------------------------------------------------------------------------*/
+class FileList {
+public:
+    unsigned int filename;
+    unsigned int inode_num;
+}
+
 class FileSystem {
 
 friend class File; /* -- not sure if we need this; feel free to delete */
@@ -52,6 +62,9 @@ private:
      
      SimpleDisk * disk;
      unsigned int size;
+     FileList file_table[64];
+     unsigned char inode_bitmap[64];
+     unsigned char *data_block_bitmap;
      
 public:
 
