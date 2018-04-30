@@ -26,6 +26,30 @@
 
 #include "file.H"
 #include "simple_disk.H"
+#include "frame_pool.H"      /* MEMORY MANAGEMENT */
+#include "mem_pool.H"
+
+//replace the operator "new"
+void * operator new (size_t size) {
+    unsigned long a = MEMORY_POOL->allocate((unsigned long)size);
+    return (void *)a;
+}
+
+//replace the operator "new[]"
+void * operator new[] (size_t size) {
+    unsigned long a = MEMORY_POOL->allocate((unsigned long)size);
+    return (void *)a;
+}
+
+//replace the operator "delete"
+void operator delete (void * p) {
+    MEMORY_POOL->release((unsigned long)p);
+}
+
+//replace the operator "delete[]"
+void operator delete[] (void * p) {
+    MEMORY_POOL->release((unsigned long)p);
+}
 
 /*--------------------------------------------------------------------------*/
 /* DATA STRUCTURES */ 
