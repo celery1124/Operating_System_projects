@@ -29,27 +29,6 @@
 #include "frame_pool.H"      /* MEMORY MANAGEMENT */
 #include "mem_pool.H"
 
-//replace the operator "new"
-void * operator new (size_t size) {
-    unsigned long a = MEMORY_POOL->allocate((unsigned long)size);
-    return (void *)a;
-}
-
-//replace the operator "new[]"
-void * operator new[] (size_t size) {
-    unsigned long a = MEMORY_POOL->allocate((unsigned long)size);
-    return (void *)a;
-}
-
-//replace the operator "delete"
-void operator delete (void * p) {
-    MEMORY_POOL->release((unsigned long)p);
-}
-
-//replace the operator "delete[]"
-void operator delete[] (void * p) {
-    MEMORY_POOL->release((unsigned long)p);
-}
 
 /*--------------------------------------------------------------------------*/
 /* DATA STRUCTURES */ 
@@ -75,7 +54,7 @@ class FileList {
 public:
     unsigned int filename;
     unsigned int inode_num;
-}
+};
 
 class FileSystem {
 
@@ -89,10 +68,26 @@ private:
      FileList file_table[64];
      unsigned char inode_bitmap[64];
      unsigned char *data_block_bitmap;
+
+     Inode alloc_inode();
+     /* Allocate Inode for a file, return NULL if no available inode */
+
+     bool release_inode(uint16_t inode_id);
+     /* Release Inode to filesystem */
+
+     uint16_t alloc_data_block();
+     /* Allocate free data block */
+
+     bool release_data_block(uint16_t block_addr);
+     /* Release data block */
      
 public:
 
     FileSystem();
+    ~FileSystem(){
+        if (data_block_bitmap != NULL)
+            delete [] data_block_bitmap;
+    };
     /* Just initializes local data structures. Does not connect to disk yet. */
     
     bool Mount(SimpleDisk * _disk);

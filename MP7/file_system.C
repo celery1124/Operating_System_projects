@@ -35,6 +35,27 @@ FileSystem::FileSystem() {
 /*--------------------------------------------------------------------------*/
 /* FILE SYSTEM FUNCTIONS */
 /*--------------------------------------------------------------------------*/
+Inode FileSystem::alloc_inode(){
+    for (int i = 0; i< 64; i++)
+    {
+        if (inode_bitmap[i] == 0)
+
+    }
+
+}
+
+bool FileSystem::release_inode(uint16_t inode_id){
+
+}
+
+uint16_t FileSystem::alloc_data_block(){
+
+}
+
+bool FileSystem::release_data_block(uint16_t block_addr){
+
+}
+
 
 bool FileSystem::Mount(SimpleDisk * _disk) {
     if(disk != NULL)
@@ -67,9 +88,9 @@ bool FileSystem::Mount(SimpleDisk * _disk) {
 
     // 4, read datablock bitmap
     int block_offset = 3;
-    int data_block_num = _size / BLOCK_SIZE;
+    int data_block_num = size / BLOCK_SIZE;
     int bitmap_size = data_block_num / 8;
-    data_block_bitmap = new unsigned int[bitmap_size];
+    data_block_bitmap = new unsigned char[bitmap_size];
     int byte_cnt = 0;
     for (int i = 0; i < data_block_num; i++)
     {
