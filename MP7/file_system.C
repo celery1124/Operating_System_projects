@@ -243,7 +243,7 @@ File * FileSystem::LookupFile(int _file_id) {
     {
         if (file_table[i].filename == _file_id)
         {
-            ret = new File;
+            ret = new File(this);
             File.inode_id = file_table[i].inode_id;
             // read inode from inode table
             int inode_table_block_addr = inode_table_start_blk + inode_id / 32;

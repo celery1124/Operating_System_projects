@@ -17,6 +17,7 @@
 
 #define uint16_t unsigned short
 #define uint32_t unsigned int
+#define BLOCK_SIZE 512
 
 /*--------------------------------------------------------------------------*/
 /* INCLUDES */
@@ -33,6 +34,8 @@
 /*--------------------------------------------------------------------------*/
 /* class  i n o d e   */
 /*--------------------------------------------------------------------------*/
+
+class FileSystem;
 
 class Inode {
     public:
@@ -53,12 +56,12 @@ private:
     Inode inode;
     uint32_t curr_pointer;
     
+    FileSystem *fs;
     /* -- maybe it would be good to have a reference to the file system? */
     
 public:
 
-    File(/* you may need arguments here; maybe a pointer to the disk block
-          containing file management and file allocation data */);
+    File(FileSystem *_fs);
     /* Constructor for the file handle. Set the ’current
      position’ to be at the beginning of the file. */
     
