@@ -54,13 +54,15 @@ int File::Read(unsigned int _n, char * _buf) {
             break;
         
         fs->disk->read(inode.direct_index[block_index], buf);
-        Console::puts("read block: ") ;Console::puti(inode.direct_index[block_index]);Console::puts("\n")  ;  
-        Console::puts("buf[0]: ") ;Console::puti(buf[0]);Console::puts("\n")  ;
+        Console::puts("read block: ") ;Console::puti(inode.direct_index[block_index]);Console::puts("\n");
+        Console::puts("curr_pointer: ") ;Console::puti(curr_pointer);Console::puts("\n");
         for (int i = block_offset; i < BLOCK_SIZE; i++)
         {
+            if(EoF())
+                return read_cnt;
             _buf[read_cnt++] = buf[i];
             curr_pointer++;
-            if(read_cnt == _n || EoF())
+            if(read_cnt == _n)
                 return read_cnt;
         }
     }
@@ -78,9 +80,11 @@ int File::Read(unsigned int _n, char * _buf) {
         fs->disk->read(indirect_index[block_index], buf);
         for (int i = block_offset; i < BLOCK_SIZE; i++)
         {
+            if(EoF())
+                return read_cnt;
             _buf[read_cnt++] = buf[i];
             curr_pointer++;
-            if(read_cnt == _n || EoF())
+            if(read_cnt == _n)
                 return read_cnt;
         }
     }
@@ -121,8 +125,7 @@ void File::Write(unsigned int _n, const char * _buf) {
         {
             assert(inode.direct_index[block_index] = fs->alloc_data_block());
             fs->disk->write(inode.direct_index[block_index], buf);
-            Console::puts("write block: ") ;Console::puti(inode.direct_index[block_index]);Console::puts("\n")  ;  
-            Console::puts("buf[0]: ") ;Console::puti(buf[0]);Console::puts("\n")  ;
+            Console::puts("write block: ") ;Console::puti(inode.direct_index[block_index]);Console::puts("\n")  ; 
             inode.size = curr_pointer;
         }
         // update to exist block
