@@ -77,6 +77,16 @@ bool FileSystem::release_inode(unsigned int inode_id){
         buf[i] = inode_bitmap[i];
     }
     disk->write(2, buf);
+
+    // also need to clean the inode
+    Inode inode;
+    inode.size = 0
+    inode.indirect_index = 0;
+    for (int j = 0 ; j < 5; j++)
+        inode.direct_index[j] = 0;
+    flush_inode(inode_id, inode);
+
+
     return true;
 }
 
@@ -309,6 +319,34 @@ bool FileSystem::CreateFile(int _file_id) {
 }
 
 bool FileSystem::DeleteFile(int _file_id) {
-    Console::puts("deleting file\n");
-    assert(false);
+    File *fd;
+    if (fd = LookupFile(_file_id) == NULL)
+        return false;
+    // 1, release all the data block in the file
+    fd->Rewrite();
+
+    // 2. release the inode
+    release_inode(fd->inode_id);
+    delete fd;
+
+    // 3. update the file table
+    for (int i = 0; i <= file_table_curr; i++)
+    {
+        if(file_table[i].filename == _file_id)
+        {
+            //swap the last entry up
+            file_table[i] = file_table[file_table_curr];
+            file_table_curr--;
+        }
+    }
+    // flush file table
+    unsigned char buf[512];
+    FileList *fl_p = (FileList *)buf;
+    for (int i = 0; i < 64; i++)
+    {
+        fl_p[i] = file_table[i];
+    }
+    disk->write(1, buf);
+    
+    return true;
 }
