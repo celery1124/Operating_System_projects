@@ -38,8 +38,49 @@ File::File(FileSystem *_fs) {
 /*--------------------------------------------------------------------------*/
 
 int File::Read(unsigned int _n, char * _buf) {
-    Console::puts("reading from file\n");
-    assert(false);
+    unsigned int read_cnt = 0;
+    int block_index = 0;
+    int block_offset = 0;
+    unsigned char buf[512];
+
+    // direct block
+    while(read_cnt < _n)
+    {
+        block_index = curr_pointer / BLOCK_SIZE;
+        block_offset = curr_pointer % BLOCK_SIZE;
+        cnt_per_loop = 0;
+        if(block_index >= 5)
+            break;
+        
+        fs->disk->read(inode.direct_index[block_index], buf)
+        for (int i = block_offset; i < BLOCK_SIZE; i++)
+        {
+            buf[i] = _buf[read_cnt++];
+            curr_pointer++;
+            if(read_cnt == _n || EOF())
+                return read_cnt;
+        }
+    }
+
+    // indirect block
+    unsigned char indirect_index_buf[512];
+    uint16_t * indirect_index = (uint16_t *)indirect_index_buf;
+    fs->disk->read(inode.indirect_index, indirect_index_buf);
+    
+    while(read_cnt < _n)
+    {
+        block_index = curr_pointer / BLOCK_SIZE - 5;
+        block_offset = curr_pointer % BLOCK_SIZE;
+
+        fs->disk->read(indirect_index[block_index], buf)
+        for (int i = block_offset; i < BLOCK_SIZE; i++)
+        {
+            buf[i] = _buf[read_cnt++];
+            curr_pointer++;
+            if(read_cnt == _n || EOF())
+                return read_cnt;
+        }
+    }
 }
 
 
