@@ -132,6 +132,19 @@ bool FileSystem::release_data_block(uint16_t block_addr){
 
 }
 
+bool FileSystem::flush_inode(unsigned int inode_id, Inode inode)
+{
+    int inode_table_block_addr = inode_table_start_blk + inode_id / 32;
+    int inode_table_index = inode_id % 32;
+    unsigned char buf[512];
+    disk->read(inode_table_block_addr, buf);
+    Inode *p = (Inode *)buf;
+    p[inode_table_index] = inode;
+
+    // flush
+    disk->write(inode_table_block_addr, buf);
+
+}
 
 bool FileSystem::Mount(SimpleDisk * _disk) {
     if(disk != NULL)

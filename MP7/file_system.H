@@ -85,6 +85,8 @@ private:
 
      bool release_data_block(uint16_t block_addr);
      /* Release data block */
+
+     bool flush_inode(unsigned int inode_id, Inode inode);
      
 public:
 
