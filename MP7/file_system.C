@@ -100,11 +100,12 @@ uint16_t FileSystem::alloc_data_block(){
     // update bitmap
     data_block_bitmap[i] ^= mask;
     // flush bitmap
+    unsigned char buf[512];
     for (int i = 0; i < data_block_bitmap_size; i++)
     {
         buf[i % BLOCK_SIZE] = data_block_bitmap[i];
-        if ( (i % BLOCK_SIZE == BLOCK_SIZE - 1) || i == data_block_bitmap - 1 )
-            _disk->write(data_block_bitmap_start_blk+i, buf);
+        if ( (i % BLOCK_SIZE == BLOCK_SIZE - 1) || i == data_block_bitmap_size - 1 )
+            disk->write(data_block_bitmap_start_blk+i, buf);
     }
 
     return block_addr;
@@ -122,11 +123,12 @@ bool FileSystem::release_data_block(uint16_t block_addr){
     // update bitmap
     data_block_bitmap[index] ^= mask;
     // flush bitmap
+    unsigned char buf[512];
     for (int i = 0; i < data_block_bitmap_size; i++)
     {
         buf[i % BLOCK_SIZE] = data_block_bitmap[i];
-        if ( (i % BLOCK_SIZE == BLOCK_SIZE - 1) || i == data_block_bitmap - 1 )
-            _disk->write(data_block_bitmap_start_blk+i, buf);
+        if ( (i % BLOCK_SIZE == BLOCK_SIZE - 1) || i == data_block_bitmap_size - 1 )
+            disk->write(data_block_bitmap_start_blk+i, buf);
     }
     return true;
 
@@ -222,7 +224,7 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size) {
     _disk->write(2, buf);
 
     // 3, initialize data block bitmap, need a little bit math
-    int block_offset = data_block_bitmap_start_blk;
+    int block_offset = 5;
     int data_block_num = _size / BLOCK_SIZE;
     int db_bitmap_block_num;
     if (data_block_num % (BLOCK_SIZE * 8) == 0)
@@ -257,14 +259,14 @@ File * FileSystem::LookupFile(int _file_id) {
         if (file_table[i].filename == _file_id)
         {
             ret = new File(this);
-            File.inode_id = file_table[i].inode_id;
+            ret->inode_id = file_table[i].inode_id;
             // read inode from inode table
-            int inode_table_block_addr = inode_table_start_blk + inode_id / 32;
-            int inode_table_index = inode_id % 32;
+            int inode_table_block_addr = inode_table_start_blk + ret->inode_id / 32;
+            int inode_table_index = ret->inode_id % 32;
             unsigned char buf[512];
             disk->read(inode_table_block_addr, buf);
             Inode *p = (Inode *)buf;
-            File.inode = p[inode_table_index];
+            ret->inode = p[inode_table_index];
             break;
         }
     }

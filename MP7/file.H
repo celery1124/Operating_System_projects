@@ -49,6 +49,7 @@ class Inode {
 /*--------------------------------------------------------------------------*/
 
 class File  {
+    friend class FileSystem;
     
 private:
     /* -- your file data structures here ... */

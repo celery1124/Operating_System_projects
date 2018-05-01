@@ -68,13 +68,13 @@ private:
      SimpleDisk * disk;
      unsigned int size;
      FileList file_table[64];
-     file_table_curr;
+     int file_table_curr;
      unsigned char inode_bitmap[64];
      unsigned char *data_block_bitmap;
      unsigned int data_block_bitmap_size;
      unsigned int data_block_bitmap_block_size;
 
-     uint16_t alloc_inode();
+     unsigned int alloc_inode();
      /* Allocate Inode for a file, return 255 if no available inode */
 
      bool release_inode(unsigned int inode_id);
