@@ -55,6 +55,7 @@ int File::Read(unsigned int _n, char * _buf) {
         
         fs->disk->read(inode.direct_index[block_index], buf);
         Console::puts("read block: ") ;Console::puti(inode.direct_index[block_index]);Console::puts("\n")  ;  
+        Console::puts("buf[0]: ") ;Console::puti(buf[0]);Console::puts("\n")  ;
         for (int i = block_offset; i < BLOCK_SIZE; i++)
         {
             _buf[read_cnt++] = buf[i];
@@ -96,10 +97,10 @@ void File::Write(unsigned int _n, const char * _buf) {
     // direct block
     while(write_cnt < _n)
     {
-        block_index = (curr_pointer + 1) / BLOCK_SIZE;
+        block_index = curr_pointer / BLOCK_SIZE;
         if(block_index >= 5)
             break;
-        block_offset = (curr_pointer + 1) % BLOCK_SIZE;
+        block_offset = curr_pointer % BLOCK_SIZE;
 
         curr_block = inode.size / BLOCK_SIZE;
         if (inode.size % BLOCK_SIZE == 0)
@@ -121,6 +122,7 @@ void File::Write(unsigned int _n, const char * _buf) {
             assert(inode.direct_index[block_index] = fs->alloc_data_block());
             fs->disk->write(inode.direct_index[block_index], buf);
             Console::puts("write block: ") ;Console::puti(inode.direct_index[block_index]);Console::puts("\n")  ;  
+            Console::puts("buf[0]: ") ;Console::puti(buf[0]);Console::puts("\n")  ;
             inode.size = curr_pointer;
         }
         // update to exist block
@@ -144,13 +146,13 @@ void File::Write(unsigned int _n, const char * _buf) {
         
         while(write_cnt < _n)
         {
-            block_index = (curr_pointer + 1) / BLOCK_SIZE - 5;
+            block_index = curr_pointer / BLOCK_SIZE - 5;
             if (block_index > BLOCK_SIZE/sizeof(uint16_t))
             {
                 Console::puts("Beyond Maximum size of a file\n");
                 assert(false);
             }
-            block_offset = (curr_pointer + 1) % BLOCK_SIZE;
+            block_offset = curr_pointer % BLOCK_SIZE;
             curr_block = inode.size / BLOCK_SIZE;
             if (inode.size % BLOCK_SIZE == 0)
                 curr_block--;
