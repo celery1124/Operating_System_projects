@@ -53,7 +53,7 @@
 class FileList {
 public:
     unsigned int filename;
-    unsigned int inode_num;
+    unsigned int inode_id;
 };
 
 class FileSystem {
@@ -62,10 +62,13 @@ friend class File; /* -- not sure if we need this; feel free to delete */
 
 private:
      /* -- DEFINE YOUR FILE SYSTEM DATA STRUCTURES HERE. */
+     int inode_table_start_blk;
+     int data_block_bitmap_start_blk;
      
      SimpleDisk * disk;
      unsigned int size;
      FileList file_table[64];
+     file_table_curr;
      unsigned char inode_bitmap[64];
      unsigned char *data_block_bitmap;
      unsigned int data_block_bitmap_size;
@@ -74,7 +77,7 @@ private:
      uint16_t alloc_inode();
      /* Allocate Inode for a file, return 255 if no available inode */
 
-     bool release_inode(uint16_t inode_id);
+     bool release_inode(unsigned int inode_id);
      /* Release Inode to filesystem */
 
      uint16_t alloc_data_block();

@@ -49,6 +49,7 @@ class File  {
     
 private:
     /* -- your file data structures here ... */
+    unsigned int inode_id;
     Inode inode;
     uint32_t curr_pointer;
     

@@ -30,14 +30,18 @@
 FileSystem::FileSystem() {
     disk = NULL;
     data_block_bitmap = NULL;
+    file_table_curr = 0;
+
+    inode_table_start_blk = 3;
+    data_block_bitmap_start_blk = 5;
 }
 
 /*--------------------------------------------------------------------------*/
 /* FILE SYSTEM FUNCTIONS */
 /*--------------------------------------------------------------------------*/
-uint16_t FileSystem::alloc_inode(){
-    uint16_t inode_id = 255;
-    for (uint16_t i = 0; i< 64; i++)
+unsigned int FileSystem::alloc_inode(){
+    unsigned int inode_id = 255;
+    for (unsigned int i = 0; i< 64; i++)
     {
         if (inode_bitmap[i] == 0)
         {
@@ -61,7 +65,7 @@ uint16_t FileSystem::alloc_inode(){
 
 }
 
-bool FileSystem::release_inode(uint16_t inode_id){
+bool FileSystem::release_inode(unsigned int inode_id){
     if(inode_bitmap[inode_id] != 1)
         return false;
 
@@ -100,7 +104,7 @@ uint16_t FileSystem::alloc_data_block(){
     {
         buf[i % BLOCK_SIZE] = data_block_bitmap[i];
         if ( (i % BLOCK_SIZE == BLOCK_SIZE - 1) || i == data_block_bitmap - 1 )
-            _disk->write(3+i, buf);
+            _disk->write(data_block_bitmap_start_blk+i, buf);
     }
 
     return block_addr;
@@ -122,7 +126,7 @@ bool FileSystem::release_data_block(uint16_t block_addr){
     {
         buf[i % BLOCK_SIZE] = data_block_bitmap[i];
         if ( (i % BLOCK_SIZE == BLOCK_SIZE - 1) || i == data_block_bitmap - 1 )
-            _disk->write(3+i, buf);
+            _disk->write(data_block_bitmap_start_blk+i, buf);
     }
     return true;
 
@@ -159,7 +163,7 @@ bool FileSystem::Mount(SimpleDisk * _disk) {
     }
 
     // 4, read datablock bitmap
-    int block_offset = 3;
+    int block_offset = data_block_bitmap_start_blk;
     int data_block_num = size / BLOCK_SIZE;
     int bitmap_size = data_block_num / 8;
     data_block_bitmap_size = bitmap_size;
@@ -173,7 +177,7 @@ bool FileSystem::Mount(SimpleDisk * _disk) {
     int byte_cnt = 0;
     for (int i = 0; i < db_bitmap_block_num; i++)
     {
-        _disk->read(3+i,buf);
+        _disk->read(block_offset+i,buf);
         for (int j = 0; j < BLOCK_SIZE; j++)
         {
             data_block_bitmap[byte_cnt++] = buf[j];
@@ -184,8 +188,6 @@ bool FileSystem::Mount(SimpleDisk * _disk) {
             }
         }
     }
-
-
 
 }
 
@@ -207,7 +209,7 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size) {
     _disk->write(2, buf);
 
     // 3, initialize data block bitmap, need a little bit math
-    int block_offset = 3;
+    int block_offset = data_block_bitmap_start_blk;
     int data_block_num = _size / BLOCK_SIZE;
     int db_bitmap_block_num;
     if (data_block_num % (BLOCK_SIZE * 8) == 0)
@@ -227,7 +229,7 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size) {
             if( i == 0 && j <= (block_offset + db_bitmap_block_num)/8 )
                 buf[j] = 0;
         }
-        _disk->write(3+i, buf);
+        _disk->write(block_offset+i, buf);
         remain_bytes -= BLOCK_SIZE;
     }
 
@@ -235,13 +237,46 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size) {
 }
 
 File * FileSystem::LookupFile(int _file_id) {
-    Console::puts("looking up file\n");
-    assert(false);
+    File *ret = NULL;
+    // search in the file table
+    for(int i = 0; i < 64; i++)
+    {
+        if (file_table[i].filename == _file_id)
+        {
+            ret = new File;
+            File.inode_id = file_table[i].inode_id;
+            // read inode from inode table
+            int inode_table_block_addr = inode_table_start_blk + inode_id / 32;
+            int inode_table_index = inode_id % 32;
+            unsigned char buf[512];
+            disk->read(inode_table_block_addr, buf);
+            Inode *p = (Inode *)buf;
+            File.inode = p[inode_table_index];
+            break;
+        }
+    }
+    return ret;
+
 }
 
 bool FileSystem::CreateFile(int _file_id) {
-    Console::puts("creating file\n");
-    assert(false);
+    // allocate a inode
+    unsigned int inode_id = alloc_inode();
+    if (inode_id == 255)
+        return false;
+    // write to file table
+    file_table[file_table_curr].filename = _file_id;
+    file_table[file_table_curr].inode_id = inode_id;
+    file_table_curr++;
+    // flush file table
+    unsigned char buf[512];
+    FileList *fl_p = (FileList *)buf;
+    for (int i = 0; i < 64; i++)
+    {
+        fl_p[i] = file_table[i];
+    }
+    disk->write(1, buf);
+    return true;
 }
 
 bool FileSystem::DeleteFile(int _file_id) {
