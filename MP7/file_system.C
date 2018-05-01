@@ -77,10 +77,54 @@ bool FileSystem::release_inode(uint16_t inode_id){
 }
 
 uint16_t FileSystem::alloc_data_block(){
+    uint16_t block_addr = 0;
+
+    unsigned int i = 0;
+    while (data_block_bitmap[i] == 0x0 && i < data_block_bitmap_size) {
+        i++;
+    }
+    if (i == data_block_bitmap_size)
+        return block_addr;
+    block_addr += i*8;
+
+    unsigned char mask = 0x80;
+    while ((mask & data_block_bitmap[i]) == 0) {
+        mask = mask >> 1;
+        block_addr++;
+    }
+
+    // update bitmap
+    data_block_bitmap[i] ^= mask;
+    // flush bitmap
+    for (int i = 0; i < data_block_bitmap_size; i++)
+    {
+        buf[i % BLOCK_SIZE] = data_block_bitmap[i];
+        if ( (i % BLOCK_SIZE == BLOCK_SIZE - 1) || i == data_block_bitmap - 1 )
+            _disk->write(3+i, buf);
+    }
+
+    return block_addr;
+
 
 }
 
 bool FileSystem::release_data_block(uint16_t block_addr){
+    unsigned int index = block_addr / 8;
+    unsigned char mask = 0x80 >> (block_addr % 8);
+
+    if((data_block_bitmap[index] & mask) != 0)
+        return false;
+
+    // update bitmap
+    data_block_bitmap[index] ^= mask;
+    // flush bitmap
+    for (int i = 0; i < data_block_bitmap_size; i++)
+    {
+        buf[i % BLOCK_SIZE] = data_block_bitmap[i];
+        if ( (i % BLOCK_SIZE == BLOCK_SIZE - 1) || i == data_block_bitmap - 1 )
+            _disk->write(3+i, buf);
+    }
+    return true;
 
 }
 
@@ -118,9 +162,16 @@ bool FileSystem::Mount(SimpleDisk * _disk) {
     int block_offset = 3;
     int data_block_num = size / BLOCK_SIZE;
     int bitmap_size = data_block_num / 8;
+    data_block_bitmap_size = bitmap_size;
     data_block_bitmap = new unsigned char[bitmap_size];
+    int db_bitmap_block_num;
+    if (data_block_num % (BLOCK_SIZE * 8) == 0)
+        db_bitmap_block_num = data_block_num / (BLOCK_SIZE * 8);
+    else
+        db_bitmap_block_num = data_block_num / (BLOCK_SIZE * 8) + 1;
+    data_block_bitmap_block_size = db_bitmap_block_num;
     int byte_cnt = 0;
-    for (int i = 0; i < data_block_num; i++)
+    for (int i = 0; i < db_bitmap_block_num; i++)
     {
         _disk->read(3+i,buf);
         for (int j = 0; j < BLOCK_SIZE; j++)

@@ -68,6 +68,8 @@ private:
      FileList file_table[64];
      unsigned char inode_bitmap[64];
      unsigned char *data_block_bitmap;
+     unsigned int data_block_bitmap_size;
+     unsigned int data_block_bitmap_block_size;
 
      uint16_t alloc_inode();
      /* Allocate Inode for a file, return 255 if no available inode */
