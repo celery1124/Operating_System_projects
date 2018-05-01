@@ -54,10 +54,10 @@ int File::Read(unsigned int _n, char * _buf) {
             break;
         
         fs->disk->read(inode.direct_index[block_index], buf);
-        Console::puts("write block: ") ;Console::puti(inode.direct_index[block_index]);Console::puts("\n")  ;  
+        Console::puts("read block: ") ;Console::puti(inode.direct_index[block_index]);Console::puts("\n")  ;  
         for (int i = block_offset; i < BLOCK_SIZE; i++)
         {
-            buf[i] = _buf[read_cnt++];
+            _buf[read_cnt++] = buf[i];
             curr_pointer++;
             if(read_cnt == _n || EoF())
                 return read_cnt;
@@ -77,7 +77,7 @@ int File::Read(unsigned int _n, char * _buf) {
         fs->disk->read(indirect_index[block_index], buf);
         for (int i = block_offset; i < BLOCK_SIZE; i++)
         {
-            buf[i] = _buf[read_cnt++];
+            _buf[read_cnt++] = buf[i];
             curr_pointer++;
             if(read_cnt == _n || EoF())
                 return read_cnt;
