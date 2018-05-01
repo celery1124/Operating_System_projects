@@ -223,7 +223,19 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size) {
         buf[i] = 1;
     _disk->write(2, buf);
 
-    // 3, initialize data block bitmap, need a little bit math
+    // 3. initialize inode table
+    Inode *inode_p = (Inode *)buf;
+    for (int i = 0 ; i < 32; i++)
+    {
+        inode_p[i].size = 0;
+        inode_p[i].indirect_index = 0;
+        for (int j = 0 ; j < 5; j++)
+            inode_p[i].direct_index[j] = 0;
+    }
+    _disk->write(3, buf);
+    _disk->write(4, buf);
+
+    // 4, initialize data block bitmap, need a little bit math
     int block_offset = 5;
     int data_block_num = _size / BLOCK_SIZE;
     int db_bitmap_block_num;
