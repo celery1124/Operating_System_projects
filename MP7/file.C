@@ -54,6 +54,7 @@ int File::Read(unsigned int _n, char * _buf) {
             break;
         
         fs->disk->read(inode.direct_index[block_index], buf);
+        Console::puts("write block: ") ;Console::puti(inode.direct_index[block_index]);Console::puts("\n")  ;  
         for (int i = block_offset; i < BLOCK_SIZE; i++)
         {
             buf[i] = _buf[read_cnt++];
@@ -90,6 +91,7 @@ void File::Write(unsigned int _n, const char * _buf) {
     int block_index = 0;
     int block_offset = 0;
     unsigned char buf[512];
+    int curr_block;
 
     // direct block
     while(write_cnt < _n)
@@ -99,7 +101,11 @@ void File::Write(unsigned int _n, const char * _buf) {
             break;
         block_offset = (curr_pointer + 1) % BLOCK_SIZE;
 
-        if(block_index <= inode.size / BLOCK_SIZE)
+        curr_block = inode.size / BLOCK_SIZE;
+        if (inode.size % BLOCK_SIZE == 0)
+            curr_block--;
+
+        if(block_index <= curr_block)
             fs->disk->read(inode.direct_index[block_index], buf);
         for (int i = block_offset; i < BLOCK_SIZE; i++)
         {
@@ -110,10 +116,11 @@ void File::Write(unsigned int _n, const char * _buf) {
         }
 
         // allocate a new data block
-        if(block_index > inode.size / BLOCK_SIZE)
+        if(block_index > curr_block)
         {
             assert(inode.direct_index[block_index] = fs->alloc_data_block());
             fs->disk->write(inode.direct_index[block_index], buf);
+            Console::puts("write block: ") ;Console::puti(inode.direct_index[block_index]);Console::puts("\n")  ;  
             inode.size = curr_pointer;
         }
         // update to exist block
@@ -144,8 +151,11 @@ void File::Write(unsigned int _n, const char * _buf) {
                 assert(false);
             }
             block_offset = (curr_pointer + 1) % BLOCK_SIZE;
+            curr_block = inode.size / BLOCK_SIZE;
+            if (inode.size % BLOCK_SIZE == 0)
+                curr_block--;
             
-            if(block_index <= (inode.size / BLOCK_SIZE - 5))
+            if(block_index <= (curr_block - 5))
                 fs->disk->read(indirect_index[block_index], buf);
             for (int i = block_offset; i < BLOCK_SIZE; i++)
             {
@@ -156,7 +166,7 @@ void File::Write(unsigned int _n, const char * _buf) {
             }
 
             // allocate a new data block
-            if(block_index > (inode.size / BLOCK_SIZE - 5))
+            if(block_index > (curr_block - 5))
             {
                 assert(indirect_index[block_index] = fs->alloc_data_block());
                 fs->disk->write(indirect_index[block_index], buf);

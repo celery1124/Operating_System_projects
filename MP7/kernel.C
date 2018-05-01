@@ -262,7 +262,7 @@ void fun3() {
            
     for(int j = 0;; j++) {
         
-        Console::puts("FUN 4 IN BURST["); Console::puti(j); Console::puts("]\n");
+        Console::puts("FUN 3 IN BURST["); Console::puti(j); Console::puts("]\n");
         
         exercise_file_system(FILE_SYSTEM);
         
@@ -349,6 +349,7 @@ int main() {
     /* -- DISK DEVICE -- */
 
     SYSTEM_DISK = new SimpleDisk(MASTER, SYSTEM_DISK_SIZE);
+    FILE_SYSTEM = new FileSystem();
     
     /* NOTE: The timer chip starts periodically firing as 
              soon as we enable interrupts.

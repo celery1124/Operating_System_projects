@@ -43,10 +43,10 @@ unsigned int FileSystem::alloc_inode(){
     unsigned int inode_id = 255;
     for (unsigned int i = 0; i< 64; i++)
     {
-        if (inode_bitmap[i] == 0)
+        if (inode_bitmap[i] == 1)
         {
             inode_id = i;
-            inode_bitmap[i] == 1;
+            inode_bitmap[i] = 0;
             break;
         }
     }
@@ -249,6 +249,7 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size) {
     }
 
     Console::puts("Format complete\n");    
+    return true;
 }
 
 File * FileSystem::LookupFile(int _file_id) {
@@ -277,6 +278,7 @@ File * FileSystem::LookupFile(int _file_id) {
 bool FileSystem::CreateFile(int _file_id) {
     // allocate a inode
     unsigned int inode_id = alloc_inode();
+    Console::puts("allocate inode: ");Console::puti(inode_id);Console::puts("\n");
     if (inode_id == 255)
         return false;
     // write to file table
