@@ -128,7 +128,6 @@ void pass_on_CPU(Thread * _to_thread) {
 
         /* We don't use a scheduler. Explicitely pass control to the next
            thread in a co-routine fashion. */
-    Console::puts("pss to thread: ") ;Console::puti((int)_to_thread);Console::puts("\n");
 	Thread::dispatch_to(_to_thread); 
 
 #else
