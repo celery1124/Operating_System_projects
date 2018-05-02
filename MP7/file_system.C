@@ -41,7 +41,7 @@ FileSystem::FileSystem() {
 /*--------------------------------------------------------------------------*/
 unsigned int FileSystem::alloc_inode(){
     unsigned int inode_id = 255;
-    for (unsigned int i = 0; i< 64; i++)
+    for (unsigned int i = 0; i< MAX_FILE_NUM; i++)
     {
         if (inode_bitmap[i] == 1)
         {
@@ -55,7 +55,7 @@ unsigned int FileSystem::alloc_inode(){
         return inode_id;
     // flush inode bitmap
     unsigned char buf[BLOCK_SIZE];
-    for (int i = 0; i < 64; i++)
+    for (int i = 0; i < MAX_FILE_NUM; i++)
     {
         buf[i] = inode_bitmap[i];
     }
@@ -72,7 +72,7 @@ bool FileSystem::release_inode(unsigned int inode_id){
     inode_bitmap[inode_id] = 1;
     // flush inode bitmap
     unsigned char buf[BLOCK_SIZE];
-    for (int i = 0; i < 64; i++)
+    for (int i = 0; i < MAX_FILE_NUM; i++)
     {
         buf[i] = inode_bitmap[i];
     }
@@ -175,16 +175,16 @@ bool FileSystem::Mount(SimpleDisk * _disk) {
     // 2, read file table
     _disk->read(1, buf);
     FileList *fl_p = (FileList *)buf;
-    for (int i = 0; i < 64; i++)
+    for (int i = 0; i < MAX_FILE_NUM; i++)
     {
         file_table[i] = fl_p[i];
         if (file_table[i].filename != 0)
-            file_table_curr = i;
+            file_table_curr = i+1;
     }
 
     // 3, read inode bitmap
     _disk->read(2, buf);
-    for (int i = 0; i < 64; i++)
+    for (int i = 0; i < MAX_FILE_NUM; i++)
     {
         inode_bitmap[i] = buf[i];
     }
@@ -231,7 +231,7 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size) {
     _disk->write(1, buf);
 
     // 3, initialize inode bitmap
-    for (int i=0;i<64;i++)
+    for (int i=0;i<MAX_FILE_NUM;i++)
         buf[i] = 1;
     _disk->write(2, buf);
 
@@ -279,7 +279,7 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size) {
 File * FileSystem::LookupFile(int _file_id) {
     File *ret = NULL;
     // search in the file table
-    for(int i = 0; i < 64; i++)
+    for(int i = 0; i < MAX_FILE_NUM; i++)
     {
         if (file_table[i].filename == _file_id)
         {
@@ -301,7 +301,7 @@ File * FileSystem::LookupFile(int _file_id) {
 
 bool FileSystem::CreateFile(int _file_id) {
     // first look through file table see if the _file_id already exist.
-    for (int i = 0; i < 64; i++)
+    for (int i = 0; i < MAX_FILE_NUM; i++)
     {
         if (file_table[i].filename == _file_id)
         {
@@ -319,10 +319,11 @@ bool FileSystem::CreateFile(int _file_id) {
     file_table[file_table_curr].filename = _file_id;
     file_table[file_table_curr].inode_id = inode_id;
     file_table_curr++;
+    //Console::puts("Create file file_table_curr: ") ;Console::puti(file_table_curr);Console::puts("\n");
     // flush file table
     unsigned char buf[BLOCK_SIZE];
     FileList *fl_p = (FileList *)buf;
-    for (int i = 0; i < 64; i++)
+    for (int i = 0; i < MAX_FILE_NUM; i++)
     {
         fl_p[i] = file_table[i];
     }
@@ -346,15 +347,19 @@ bool FileSystem::DeleteFile(int _file_id) {
     {
         if(file_table[i].filename == _file_id)
         {
+            // clean the delete file entry
+            file_table[i].filename = 0;
+            file_table[i].inode_id = 0;
             //swap the last entry up
             file_table[i] = file_table[file_table_curr];
             file_table_curr--;
+            //Console::puts("Delete file file_table_curr: ") ;Console::puti(file_table_curr);Console::puts("\n");
         }
     }
     // flush file table
     unsigned char buf[BLOCK_SIZE];
     FileList *fl_p = (FileList *)buf;
-    for (int i = 0; i < 64; i++)
+    for (int i = 0; i < MAX_FILE_NUM; i++)
     {
         fl_p[i] = file_table[i];
     }
