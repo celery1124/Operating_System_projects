@@ -19,6 +19,7 @@
 /*--------------------------------------------------------------------------*/
 
 #define BLOCK_SIZE 512
+#define MAX_FILE_NUM 64
 
 /*--------------------------------------------------------------------------*/
 /* INCLUDES */
@@ -67,9 +68,9 @@ private:
      
      SimpleDisk * disk;
      unsigned int size;
-     FileList file_table[64];
+     FileList file_table[MAX_FILE_NUM];
      int file_table_curr;
-     unsigned char inode_bitmap[64];
+     unsigned char inode_bitmap[MAX_FILE_NUM];
      unsigned char *data_block_bitmap;
      unsigned int data_block_bitmap_size;
      unsigned int data_block_bitmap_block_size;

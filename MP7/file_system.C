@@ -230,12 +230,12 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size) {
         buf[i] = 0;
     _disk->write(1, buf);
 
-    // 2, initialize inode bitmap
+    // 3, initialize inode bitmap
     for (int i=0;i<64;i++)
         buf[i] = 1;
     _disk->write(2, buf);
 
-    // 3. initialize inode table
+    // 4. initialize inode table
     Inode *inode_p = (Inode *)buf;
     for (int i = 0 ; i < 32; i++)
     {
@@ -247,7 +247,7 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size) {
     _disk->write(3, buf);
     _disk->write(4, buf);
 
-    // 4, initialize data block bitmap, need a little bit math
+    // 5, initialize data block bitmap, need a little bit math
     int block_offset = 5;
     int data_block_num = _size / BLOCK_SIZE;
     int db_bitmap_block_num;
@@ -300,6 +300,16 @@ File * FileSystem::LookupFile(int _file_id) {
 }
 
 bool FileSystem::CreateFile(int _file_id) {
+    // first look through file table see if the _file_id already exist.
+    for (int i = 0; i < 64; i++)
+    {
+        if (file_table[i].filename == _file_id)
+        {
+            Console::puts("File already exist\n");   
+            return false;
+        }
+    }
+
     // allocate a inode
     unsigned int inode_id = alloc_inode();
     //Console::puts("allocate inode: ");Console::puti(inode_id);Console::puts("\n");
