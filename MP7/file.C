@@ -42,7 +42,7 @@ int File::Read(unsigned int _n, char * _buf) {
     unsigned int read_cnt = 0;
     int block_index = 0;
     int block_offset = 0;
-    unsigned char buf[512];
+    unsigned char buf[BLOCK_SIZE];
 
     // direct block
     while(read_cnt < _n)
@@ -54,8 +54,7 @@ int File::Read(unsigned int _n, char * _buf) {
             break;
         
         fs->disk->read(inode.direct_index[block_index], buf);
-        Console::puts("read block: ") ;Console::puti(inode.direct_index[block_index]);Console::puts("\n");
-        Console::puts("curr_pointer: ") ;Console::puti(curr_pointer);Console::puts("\n");
+        //Console::puts("read block: ") ;Console::puti(inode.direct_index[block_index]);Console::puts("\n");
         for (int i = block_offset; i < BLOCK_SIZE; i++)
         {
             if(EoF())
@@ -63,12 +62,14 @@ int File::Read(unsigned int _n, char * _buf) {
             _buf[read_cnt++] = buf[i];
             curr_pointer++;
             if(read_cnt == _n)
+            {
                 return read_cnt;
+            }
         }
     }
 
     // indirect block
-    unsigned char indirect_index_buf[512];
+    unsigned char indirect_index_buf[BLOCK_SIZE];
     uint16_t * indirect_index = (uint16_t *)indirect_index_buf;
     fs->disk->read(inode.indirect_index, indirect_index_buf);
     
@@ -95,7 +96,7 @@ void File::Write(unsigned int _n, const char * _buf) {
     unsigned int write_cnt = 0;
     int block_index = 0;
     int block_offset = 0;
-    unsigned char buf[512];
+    unsigned char buf[BLOCK_SIZE];
     int curr_block;
 
     // direct block
@@ -120,13 +121,16 @@ void File::Write(unsigned int _n, const char * _buf) {
                 break;
         }
 
+        if(curr_pointer > inode.size)
+            inode.size = curr_pointer;
+
         // allocate a new data block
         if(block_index > curr_block)
         {
             assert(inode.direct_index[block_index] = fs->alloc_data_block());
             fs->disk->write(inode.direct_index[block_index], buf);
-            Console::puts("write block: ") ;Console::puti(inode.direct_index[block_index]);Console::puts("\n")  ; 
-            inode.size = curr_pointer;
+            //Console::puts("write block: ") ;Console::puti(inode.direct_index[block_index]);Console::puts("\n")  ; 
+            
         }
         // update to exist block
         else
@@ -138,7 +142,7 @@ void File::Write(unsigned int _n, const char * _buf) {
     if (write_cnt < _n)
     {
         // indirect block
-        unsigned char indirect_index_buf[512];
+        unsigned char indirect_index_buf[BLOCK_SIZE];
         uint16_t * indirect_index = (uint16_t *)indirect_index_buf;
         if(inode.indirect_index == 0)
         {
@@ -170,18 +174,23 @@ void File::Write(unsigned int _n, const char * _buf) {
                     break;
             }
 
+            if(curr_pointer > inode.size)
+            inode.size = curr_pointer;
+
             // allocate a new data block
             if(block_index > (curr_block - 5))
             {
                 assert(indirect_index[block_index] = fs->alloc_data_block());
                 fs->disk->write(indirect_index[block_index], buf);
-                inode.size = curr_pointer;
+                //Console::puts("write block: ") ;Console::puti(indirect_index[block_index]);Console::puts("\n")  ; 
             }
             // update to exist block
             else
             {
                 fs->disk->write(indirect_index[block_index], buf);
             }
+            // flush the indrect block
+            fs->disk->write(inode.indirect_index, indirect_index_buf);
         }
     }
 
@@ -206,7 +215,7 @@ void File::Rewrite() {
     // indirect index
     if (inode.indirect_index != 0)
     {
-        unsigned char buf[512];
+        unsigned char buf[BLOCK_SIZE];
         fs->disk->read(inode.indirect_index, buf);
         uint16_t *block_index = (uint16_t *)buf;
         for(int i = 0; i < BLOCK_SIZE/sizeof(uint16_t); i++)
@@ -214,7 +223,8 @@ void File::Rewrite() {
             if (block_index[i] != 0)
                 assert(fs->release_data_block(block_index[i]));
         }
-
+        // release the indirect block
+        assert(fs->release_data_block(inode.indirect_index));
     }
 }
 

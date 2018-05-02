@@ -145,6 +145,75 @@ void pass_on_CPU(Thread * _to_thread) {
 /* CODE TO EXERCISE THE FILE SYSTEM */
 /*--------------------------------------------------------------------------*/
 
+void exercise_file_system2(FileSystem * _file_system)
+{
+    const char * STRING1 = "01234567890123456789";
+    const char * STRING2 = "abcdefghijabcdefghij";
+    int loop_size = 512;
+    /* -- Create two files -- */
+    
+    assert(_file_system->CreateFile(1));
+    assert(_file_system->CreateFile(2));
+    
+    /* -- "Open" the two files -- */
+    
+    File * file1 = _file_system->LookupFile(1);
+    assert(file1 != NULL);
+    
+    File * file2 = _file_system->LookupFile(2);
+    assert(file2 != NULL);
+    
+    /* -- Write into File 1 -- */
+    file1->Rewrite();
+    for (int i = 0; i < loop_size; i++)
+        file1->Write(20, STRING1);
+    
+    /* -- Write into File 2 -- */
+    
+    file2->Rewrite();
+    for (int i = 0; i < loop_size; i++)
+        file2->Write(20, STRING2);
+    
+    /* -- "Close" files -- */
+    delete file1;
+    delete file2;
+    
+    /* -- "Open files again -- */
+    file1 = _file_system->LookupFile(1);
+    file2 = _file_system->LookupFile(2);
+    
+    /* -- Read from File 1 and check result -- */
+    file1->Reset();
+    char result1[30];
+    for (int i=0;i<loop_size;i++)
+    {
+        assert(file1->Read(20, result1) == 20);
+        for(int i = 0; i < 20; i++) {
+            assert(result1[i] == STRING1[i]);
+        }
+    }
+    
+    
+    /* -- Read from File 2 and check result -- */
+    file2->Reset();
+    char result2[30];
+    for (int i=0;i<loop_size;i++)
+    {
+        assert(file2->Read(20, result2) == 20);
+        for(int i = 0; i < 20; i++) {
+            assert(result2[i] == STRING2[i]);
+        }
+    }
+    
+    /* -- "Close" files again -- */
+    delete file1;
+    delete file2;
+    
+    /* -- Delete both files -- */
+    assert(_file_system->DeleteFile(1));
+    assert(_file_system->DeleteFile(2));
+}
+
 void exercise_file_system(FileSystem * _file_system) {
     
     const char * STRING1 = "01234567890123456789";
@@ -229,7 +298,7 @@ void fun1() {
        }
 
         /* -- Give up the CPU */
-       pass_on_CPU(thread2);
+       pass_on_CPU(thread3);
     }
 }
 
@@ -264,7 +333,7 @@ void fun3() {
         
         Console::puts("FUN 3 IN BURST["); Console::puti(j); Console::puts("]\n");
         
-        exercise_file_system(FILE_SYSTEM);
+        exercise_file_system2(FILE_SYSTEM);
         
         /* -- Give up the CPU */
         pass_on_CPU(thread4);

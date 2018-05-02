@@ -54,7 +54,7 @@ unsigned int FileSystem::alloc_inode(){
     if (inode_id == 255)
         return inode_id;
     // flush inode bitmap
-    unsigned char buf[512];
+    unsigned char buf[BLOCK_SIZE];
     for (int i = 0; i < 64; i++)
     {
         buf[i] = inode_bitmap[i];
@@ -66,12 +66,12 @@ unsigned int FileSystem::alloc_inode(){
 }
 
 bool FileSystem::release_inode(unsigned int inode_id){
-    if(inode_bitmap[inode_id] != 1)
+    if(inode_bitmap[inode_id] != 0)
         return false;
 
-    inode_bitmap[inode_id] = 0;
+    inode_bitmap[inode_id] = 1;
     // flush inode bitmap
-    unsigned char buf[512];
+    unsigned char buf[BLOCK_SIZE];
     for (int i = 0; i < 64; i++)
     {
         buf[i] = inode_bitmap[i];
@@ -80,7 +80,7 @@ bool FileSystem::release_inode(unsigned int inode_id){
 
     // also need to clean the inode
     Inode inode;
-    inode.size = 0
+    inode.size = 0;
     inode.indirect_index = 0;
     for (int j = 0 ; j < 5; j++)
         inode.direct_index[j] = 0;
@@ -110,7 +110,7 @@ uint16_t FileSystem::alloc_data_block(){
     // update bitmap
     data_block_bitmap[i] ^= mask;
     // flush bitmap
-    unsigned char buf[512];
+    unsigned char buf[BLOCK_SIZE];
     for (int i = 0; i < data_block_bitmap_size; i++)
     {
         buf[i % BLOCK_SIZE] = data_block_bitmap[i];
@@ -133,7 +133,7 @@ bool FileSystem::release_data_block(uint16_t block_addr){
     // update bitmap
     data_block_bitmap[index] ^= mask;
     // flush bitmap
-    unsigned char buf[512];
+    unsigned char buf[BLOCK_SIZE];
     for (int i = 0; i < data_block_bitmap_size; i++)
     {
         buf[i % BLOCK_SIZE] = data_block_bitmap[i];
@@ -148,7 +148,7 @@ bool FileSystem::flush_inode(unsigned int inode_id, Inode inode)
 {
     int inode_table_block_addr = inode_table_start_blk + inode_id / 32;
     int inode_table_index = inode_id % 32;
-    unsigned char buf[512];
+    unsigned char buf[BLOCK_SIZE];
     disk->read(inode_table_block_addr, buf);
     Inode *p = (Inode *)buf;
     p[inode_table_index] = inode;
@@ -167,7 +167,7 @@ bool FileSystem::Mount(SimpleDisk * _disk) {
     disk = _disk;
 
     // read buffer
-    unsigned char buf[512];
+    unsigned char buf[BLOCK_SIZE];
     // 1, read super block
     _disk->read(0, buf);
     size = *(unsigned int *)buf;
@@ -218,13 +218,13 @@ bool FileSystem::Mount(SimpleDisk * _disk) {
 
 bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size) {
     // write buffer
-    unsigned char buf[512];
+    unsigned char buf[BLOCK_SIZE];
     // 1, write the super block
     *(unsigned int *)buf = _size;
     _disk->write(0, buf);
 
     // 2, wipe the file table;
-    for (int i=0;i<512;i++)
+    for (int i=0;i<BLOCK_SIZE;i++)
         buf[i] = 0;
     _disk->write(1, buf);
 
@@ -286,7 +286,7 @@ File * FileSystem::LookupFile(int _file_id) {
             // read inode from inode table
             int inode_table_block_addr = inode_table_start_blk + ret->inode_id / 32;
             int inode_table_index = ret->inode_id % 32;
-            unsigned char buf[512];
+            unsigned char buf[BLOCK_SIZE];
             disk->read(inode_table_block_addr, buf);
             Inode *p = (Inode *)buf;
             ret->inode = p[inode_table_index];
@@ -300,7 +300,7 @@ File * FileSystem::LookupFile(int _file_id) {
 bool FileSystem::CreateFile(int _file_id) {
     // allocate a inode
     unsigned int inode_id = alloc_inode();
-    Console::puts("allocate inode: ");Console::puti(inode_id);Console::puts("\n");
+    //Console::puts("allocate inode: ");Console::puti(inode_id);Console::puts("\n");
     if (inode_id == 255)
         return false;
     // write to file table
@@ -308,7 +308,7 @@ bool FileSystem::CreateFile(int _file_id) {
     file_table[file_table_curr].inode_id = inode_id;
     file_table_curr++;
     // flush file table
-    unsigned char buf[512];
+    unsigned char buf[BLOCK_SIZE];
     FileList *fl_p = (FileList *)buf;
     for (int i = 0; i < 64; i++)
     {
@@ -320,13 +320,13 @@ bool FileSystem::CreateFile(int _file_id) {
 
 bool FileSystem::DeleteFile(int _file_id) {
     File *fd;
-    if (fd = LookupFile(_file_id) == NULL)
+    if ((fd = LookupFile(_file_id)) == NULL)
         return false;
     // 1, release all the data block in the file
     fd->Rewrite();
 
     // 2. release the inode
-    release_inode(fd->inode_id);
+    assert(release_inode(fd->inode_id));
     delete fd;
 
     // 3. update the file table
@@ -340,13 +340,13 @@ bool FileSystem::DeleteFile(int _file_id) {
         }
     }
     // flush file table
-    unsigned char buf[512];
+    unsigned char buf[BLOCK_SIZE];
     FileList *fl_p = (FileList *)buf;
     for (int i = 0; i < 64; i++)
     {
         fl_p[i] = file_table[i];
     }
     disk->write(1, buf);
-    
+
     return true;
 }
