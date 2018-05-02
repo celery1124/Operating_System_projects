@@ -128,6 +128,7 @@ void pass_on_CPU(Thread * _to_thread) {
 
         /* We don't use a scheduler. Explicitely pass control to the next
            thread in a co-routine fashion. */
+    Console::puts("pss to thread: ") ;Console::puti((int)_to_thread);Console::puts("\n");
 	Thread::dispatch_to(_to_thread); 
 
 #else
@@ -145,6 +146,7 @@ void pass_on_CPU(Thread * _to_thread) {
 /* CODE TO EXERCISE THE FILE SYSTEM */
 /*--------------------------------------------------------------------------*/
 
+/* test case for large file 20KB for each file */
 void exercise_file_system2(FileSystem * _file_system)
 {
     const char * STRING1 = "01234567890123456789";
@@ -298,6 +300,7 @@ void fun1() {
        }
 
         /* -- Give up the CPU */
+       /* switch to thread3 rather than thread2 */
        pass_on_CPU(thread3);
     }
 }
@@ -333,7 +336,8 @@ void fun3() {
         
         Console::puts("FUN 3 IN BURST["); Console::puti(j); Console::puts("]\n");
         
-        exercise_file_system2(FILE_SYSTEM);
+        exercise_file_system(FILE_SYSTEM);
+        //exercise_file_system2(FILE_SYSTEM);
         
         /* -- Give up the CPU */
         pass_on_CPU(thread4);
@@ -429,6 +433,7 @@ int main() {
 
      Machine::enable_interrupts();
 
+     Machine::disable_interrupts();
     /* -- MOST OF WHAT WE NEED IS SETUP. THE KERNEL CAN START. */
 
     Console::puts("Hello World!\n");
