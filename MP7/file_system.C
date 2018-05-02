@@ -178,6 +178,8 @@ bool FileSystem::Mount(SimpleDisk * _disk) {
     for (int i = 0; i < 64; i++)
     {
         file_table[i] = fl_p[i];
+        if (file_table[i].filename != 0)
+            file_table_curr = i;
     }
 
     // 3, read inode bitmap
